@@ -47,11 +47,15 @@ uv sync
 ```
 
 ### 2. Thiết lập cấu hình `.env`
-Tạo file `.env` tại thư mục gốc:
+- Tạo file `.env` tại thư mục gốc:
+```bash
+cp .env.example .env
+```
+- Điền vào các thông tin:
 ```env
-GEMINI_API_KEY=AIzaSy...
-NVIDIA_KEY=nvapi-...
-HF_KEY=hf_...
+GEMINI_API_KEY=AIzaSy...  # Google AI Studio Key
+NVIDIA_KEY=nvapi-...      # NVIDIA NIM KEY
+HF_KEY=hf_...             # Huggingface Key
 
 # Cấu hình Neo4j (Tùy chọn khi đồng bộ dữ liệu đồ thị)
 NEO4J_URI=neo4j+s://<instance-id>.databases.neo4j.io
