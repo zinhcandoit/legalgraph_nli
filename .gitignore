@@ -1,0 +1,24 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.env
+
+# Virtual environments
+.venv
+
+# Frontend
+**/node_modules/
+
+# Logs
+**/logs/
+
+# Model
+**/bamibert_vilegalnli/
+
+# Database
+**/graph_database/
+**/cache/

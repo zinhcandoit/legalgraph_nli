@@ -1,0 +1,190 @@
+
+-Goal-
+Given a text document that is potentially relevant to this activity and a list of entity types, identify all entities of those types from the text and all relationships among the identified entities.
+
+-Steps-
+1. Identify all entities. For each identified entity, extract the following information:
+- entity_name: Name of the entity, capitalized
+- entity_type: One of the following types: [citizen, government agency, local authority, economic organization, community group, land parcel, land right certificate, land use plan, statistical data, judicial body, investment project, legal instrument, public fund]
+- entity_description: Comprehensive description of the entity's attributes and activities
+Format each entity as ("entity"<|><entity_name><|><entity_type><|><entity_description>)
+
+2. From the entities identified in step 1, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
+For each pair of related entities, extract the following information:
+- source_entity: name of the source entity, as identified in step 1
+- target_entity: name of the target entity, as identified in step 1
+- relationship_description: explanation as to why you think the source entity and the target entity are related to each other
+- relationship_strength: an integer score between 1 to 10, indicating strength of the relationship between the source entity and target entity
+Format each relationship as ("relationship"<|><source_entity><|><target_entity><|><relationship_description><|><relationship_strength>)
+
+3. Return output in Vietnamese as a single list of all the entities and relationships identified in steps 1 and 2. Use **##** as the list delimiter.
+
+4. If you have to translate into Vietnamese, just translate the descriptions, nothing else!
+
+5. When finished, output <|COMPLETE|>.
+
+-Examples-
+######################
+
+Example 1:
+
+entity_types: [citizen, government agency, local authority, economic organization, community group, land parcel, land right certificate, land use plan, statistical data, judicial body, investment project, legal instrument, public fund]
+text:
+ất đai theo quy định của Hiến pháp, Luật Hoạt động giám sát của Quốc hội và Hội đồng nhân dân, Luật Mặt trận Tổ quốc Việt Nam và Luật Tổ chức chính quyền địa phương.
+
+#### Điều 231. Giám sát của công dân đối với việc quản lý, sử dụng đất đai
+
+[clause] 1. Công dân tự mình hoặc thông qua các tổ chức đại diện thực hiện quyền giám sát, phản ánh và yêu cầu, kiến nghị cơ quan có thẩm quyền xử lý các sai phạm trong quản lý, sử dụng đất đai.
+
+[clause] 2. Việc giám sát, phản ánh và yêu cầu, kiến nghị phải bảo đảm khách quan, trung thực, đúng pháp luật; không được lợi dụng quyền giám sát để khiếu nại, tố cáo không đúng quy định của pháp luật, làm mất trật tự xã hội; chịu trách nhiệm trước pháp luật về tính chính xác các thông tin do mình phản ánh.
+
+[clause] 3. Nội dung giám sát của công dân trong quản lý, sử dụng đất đai bao gồm:
+
+a) Việc lập, điều chỉnh, công bố công khai, thực hiện quy hoạch, kế hoạch sử dụng đất;
+
+b) Việc giao đất, cho thuê đất, cho phép chuyển mục đích sử dụng đất;
+
+c) Việc thu hồi đất, bồi thường, hỗ trợ và tái định cư;
+
+d) Việc đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, Giấy chứng nhận quyền sở hữu nhà ở và quyền sử dụng đất ở, Giấy chứng nhận quyền sở hữu nhà ở, Giấy chứng nhận quyền sở hữu công trình xây dựng, Giấy chứng nhận quyền sử dụng đất, quyền sở hữu nhà ở và tài sản khác gắn liền với đất, Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất;
+
+đ) Việc thu, miễn, giảm tiền sử dụng đất, tiền thuê đất, thuế liên quan đến đất đai; định giá đất;
+
+e) Việc thực hiện các thủ tục hành chính liên quan đến quyền và nghĩa vụ của người sử dụng đất.
+
+[clause] 4. Hình thức giám sát của công dân trong quản lý, sử dụng đất đai bao gồm:
+
+a) Trực tiếp thực hiện quyền giám sát thông qua việc phản ánh, kiến nghị đến các cơ quan, người có thẩm quyền giải quyết;
+
+b) Gửi đơn kiến nghị đến các tổ chức đại diện được pháp luật công nhận để các tổ chức này thực hiện việc giám sát.
+
+[clause] 5. Cơ quan nhà nước có thẩm quyền khi nhận được phản ánh, kiến
+------------------------
+output:
+("entity"<|>NGƯỜI SỬ DỤNG ĐẤT<|>citizen<|>Công dân, cá nhân hoặc tổ chức có quyền sử dụng đất, thực hiện các thủ tục tách thửa, hợp thửa, chuyển mục đích sử dụng đất và đáp ứng yêu cầu của cơ quan nhà nước)##
+("entity"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>local authority<|>Cơ quan chính quyền địa phương có thẩm quyền quyết định về việc tách, hợp, chuyển mục đích sử dụng thửa đất, quy định diện tích tối thiểu và phê duyệt các kế hoạch đất đai)##
+("entity"<|>TÒÁN<|>judicial body<|>Cơ quan tư pháp, ra bản án, quyết định về phân chia quyền sử dụng đất; quyết định của Tòa án có thể cho phép hoặc ngăn cản việc tách thửa đất nếu không đáp ứng các điều kiện pháp lý)##
+("entity"<|>THỬA ĐẤT<|>land parcel<|>Đơn vị địa chính, mảnh đất được ghi nhận trong hồ sơ địa chính; chịu quy định về tách, hợp, chuyển mục đích sử dụng và yêu cầu diện tích tối thiểu)##
+("relationship"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>THỬA ĐẤT<|>Ủy ban nhân dân cấp tỉnh quy định diện tích tối thiểu và phê duyệt việc tách hoặc hợp thửa đất<|>9)##
+("relationship"<|>TÒÁN<|>THỬA ĐẤT<|>Tòa án đưa ra bản án hoặc quyết định phân chia quyền sử dụng đất, quyết định việc tách thửa hoặc ngăn cản nếu không đáp ứng điều kiện<|>8)##
+("relationship"<|>NGƯỜI SỬ DỤNG ĐẤT<|>THỬA ĐẤT<|>Người sử dụng đất là chủ sở hữu hoặc người có quyền sử dụng thửa đất, thực hiện tách, hợp, chuyển mục đích sử dụng<|>9)##
+("relationship"<|>NGƯỜI SỬ DỤNG ĐẤT<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>Người sử dụng đất gửi đề xuất và phải tuân thủ quyết định của Ủy ban nhân dân cấp tỉnh khi tách hoặc hợp thửa<|>8)##
+("relationship"<|>NGƯỜI SỬ DỤNG ĐẤT<|>TÒÁN<|>Trong trường hợp phân chia quyền sử dụng đất theo bản án, người sử dụng đất thực hiện theo quyết định của Tòa án<|>7)##
+("relationship"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>NGƯỜI SỬ DỤNG ĐẤT<|>Ủy ban nhân dân cấp tỉnh phê duyệt hoặc từ chối đề xuất của người sử dụng đất về tách, hợp, chuyển mục đích<|>8)##
+("relationship"<|>TÒÁN<|>NGƯỜI SỬ DỤNG ĐẤT<|>Tòa án có thể ra quyết định ảnh hưởng trực tiếp đến quyền sử dụng đất của người sử dụng đất<|>6)##
+("relationship"<|>THỬA ĐẤT<|>NGƯỜI SỬ DỤNG ĐẤT<|>Thửa đất là tài sản mà người sử dụng đất sở hữu hoặc có quyền sử dụng<|>9)##
+<|COMPLETE|>
+#############################
+
+
+Example 2:
+
+entity_types: [citizen, government agency, local authority, economic organization, community group, land parcel, land right certificate, land use plan, statistical data, judicial body, investment project, legal instrument, public fund]
+text:
+ dụng đất các cấp. Bộ Tài nguyên và Môi trường, cơ quan có chức năng quản lý đất đai cấp tỉnh có trách nhiệm công bố công khai kết quả điều tra, đánh giá đất đai trong thời hạn 30 ngày kể từ ngày được cơ quan có thẩm quyền phê duyệt.
+
+### Mục 3. THỐNG KÊ, KIỂM KÊ ĐẤT ĐAI
+
+#### Điều 56. Nguyên tắc thống kê, kiểm kê đất đai
+
+[clause] 1. Trung thực, khách quan, chính xác, kịp thời, phản ánh đầy đủ hiện trạng và cơ cấu sử dụng đất đai.
+
+[clause] 2. Công khai, minh bạch, độc lập về chuyên môn, nghiệp vụ.
+
+[clause] 3. Thống nhất về nghiệp vụ, phương pháp thống kê, kiểm kê đất đai và chế độ báo cáo.
+
+[clause] 4. Bảo đảm chỉ tiêu thống kê, kiểm kê đất đai thống nhất, đồng bộ từ trung ương đến địa phương; hệ thống số liệu thống kê, kiểm kê đất đai được tổng hợp từ cấp dưới lên cấp trên trực tiếp.
+
+[clause] 5. Cung cấp kịp thời số liệu để phục vụ công tác quản lý nhà nước về đất đai và nhu cầu thông tin đất đai cho các hoạt động kinh tế, xã hội, quốc phòng, an ninh, nghiên cứu khoa học, giáo dục và đào tạo và các nhu cầu khác của Nhà nước và xã hội.
+
+#### Điều 57. Phạm vi, đối tượng thống kê, kiểm kê đất đai
+
+[clause] 1. Thống kê, kiểm kê đất đai được thực hiện trên phạm vi đơn vị hành chính cấp xã, cấp huyện, cấp tỉnh và phạm vi cả nước.
+
+[clause] 2. Thời gian thực hiện thống kê, kiểm kê đất đai như sau:
+
+a) Thống kê đất đai được thực hiện hằng năm, tính đến hết ngày 31 tháng 12 của năm thống kê, trừ năm thực hiện kiểm kê đất đai;
+
+b) Kiểm kê đất đai được thực hiện 05 năm một lần, tính đến hết ngày 31 tháng 12 của năm có chữ số cuối là 4 hoặc 9.
+
+[clause] 3. Kiểm kê đất đai chuyên đề được thực hiện theo yêu cầu của quản lý nhà nước về đất đai trong từng thời kỳ do Bộ trưởng Bộ Tài nguyên và Môi trường, Chủ tịch Ủy ban nhân dân cấp tỉnh quyết định.
+
+#### Điều 58. Chỉ tiêu, nội dung, hoạt động thống kê, kiểm kê đất đai
+
+[clause] 1. Chỉ tiêu thống kê, kiểm kê đất đai đối với các loại đất quy định tại Điều 9 của Luật này bao gồm:
+
+a) Diện tích;
+
+b) Đối tượng sử d
+------------------------
+output:
+("entity"<|>CÔNG DÂN<|>citizen<|>Công dân là người sử dụng và sở hữu đất, có quyền đề xuất giao đất, tách thửa, hợp thửa và yêu cầu chuyển đổi mục đích sử dụng đất theo quy định của Luật).##
+("entity"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>local authority<|>Ủy ban nhân dân cấp tỉnh là cơ quan quản lý nhà nước địa phương, chịu trách nhiệm phê duyệt giao đất, tách thửa, hợp thửa và các quy định về diện tích tối thiểu khi thay đổi mục đích sử dụng đất).##
+("entity"<|>TÒA ÁN<|>judicial body<|>Tòa án là cơ quan tư pháp, ra quyết định, bản án phân chia quyền sử dụng đất; quyết định của tòa án có thể ngăn cản hoặc cho phép việc tách thửa nếu không đáp ứng các điều kiện quy định).##
+("entity"<|>LUẬT NÀY<|>legal instrument<|>Luật này là văn bản pháp luật quy định nguyên tắc, điều kiện, thủ tục tách thửa, hợp thửa, chuyển mục đích sử dụng đất và các quyền, nghĩa vụ của người sử dụng đất).##
+("entity"<|>THỬA ĐẤT<|>land parcel<|>Thửa đất là đơn vị địa chính quy định diện tích, mục đích sử dụng, thời hạn sử dụng và quyền sử dụng; thửa đất có thể bị tách, hợp, hoặc chuyển mục đích sử dụng theo quy định).##
+("relationship"<|>CÔNG DÂN<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>Công dân đề xuất giao đất, tách thửa hoặc hợp thửa và nộp hồ sơ lên Ủy ban nhân dân cấp tỉnh để được phê duyệt<|>8).##
+("relationship"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>LUẬT NÀY<|>Ủy ban nhân dân cấp tỉnh thực thi và áp dụng các quy định của Luật này trong việc quyết định tách, hợp thửa đất<|>9).##
+("relationship"<|>TÒA ÁN<|>LUẬT NÀY<|>Tòa án áp dụng các quy định của Luật này khi ra bản án, quyết định phân chia quyền sử dụng đất<|>8).##
+("relationship"<|>LUẬT NÀY<|>THỬA ĐẤT<|>Luật này quy định các nguyên tắc, điều kiện và thủ tục liên quan đến việc tách, hợp thửa và chuyển mục đích sử dụng của thửa đất<|>9).##
+("relationship"<|>CÔNG DÂN<|>THỬA ĐẤT<|>Công dân là người sử dụng và sở hữu thửa đất, có quyền yêu cầu thay đổi mục đích hoặc thực hiện tách, hợp thửa<|>6).##
+("relationship"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>THỬA ĐẤT<|>Ủy ban nhân dân cấp tỉnh có thẩm quyền phê duyệt tách thửa, hợp thửa và chuyển mục đích sử dụng của thửa đất<|>8).##
+("relationship"<|>TÒA ÁN<|>THỬA ĐẤT<|>Tòa án quyết định phân chia quyền sử dụng đất, ảnh hưởng tới việc tách thửa nếu quyết định không đáp ứng các tiêu chuẩn quy định<|>7).##
+<|COMPLETE|>
+#############################
+
+
+Example 3:
+
+entity_types: [citizen, government agency, local authority, economic organization, community group, land parcel, land right certificate, land use plan, statistical data, judicial body, investment project, legal instrument, public fund]
+text:
+ chuyển quyền sử dụng đất.
+
+[clause] 6. Người đang có quyền sử dụng đất có đề xuất dự án đầu tư nếu thuộc trường hợp quy định tại Điều 79 của Luật này nhưng phù hợp với quy hoạch sử dụng đất và có đề nghị chuyển mục đích sử dụng đất mà được cơ quan nhà nước có thẩm quyền chấp thuận chủ trương đầu tư đồng thời chấp thuận nhà đầu tư theo quy định của pháp luật về đầu tư thì được sử dụng đất để thực hiện dự án đầu tư mà Nhà nước không thực hiện thu hồi đất theo quy định của Luật này.
+
+Trường hợp người đang có quyền sử dụng đất ở hoặc đất ở và đất khác có đề xuất dự án đầu tư nhà ở thương mại phù hợp với quy hoạch sử dụng đất, có đề nghị chuyển mục đích sử dụng đất mà được cơ quan nhà nước có thẩm quyền chấp thuận chủ trương đầu tư đồng thời chấp thuận nhà đầu tư theo quy định của pháp luật về đầu tư thì được sử dụng đất để thực hiện dự án.
+
+[clause] 7. Chính phủ quy định chi tiết Điều này.
+
+## Chương X. ĐĂNG KÝ ĐẤT ĐAI, CẤP GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT, QUYỀN SỞ HỮU TÀI SẢN GẮN LIỀN VỚI ĐẤT
+
+### Mục 1. HỒ SƠ ĐỊA CHÍNH
+
+#### Điều 128. Nguyên tắc lập, chỉnh lý, cập nhật hồ sơ địa chính
+
+[clause] 1. Hồ sơ địa chính được lập đến từng thửa đất, bảo đảm tính khoa học và thống nhất thông tin trong hồ sơ với hiện trạng quản lý, sử dụng đất; được tập hợp theo đơn vị hành chính cấp xã hoặc theo đơn vị hành chính cấp huyện nơi không thành lập đơn vị hành chính cấp xã.
+
+[clause] 2. Hồ sơ địa chính phải được chỉnh lý, cập nhật biến động đầy đủ, kịp thời khi người sử dụng đất thực hiện thủ tục hành chính về đất đai hoặc do yêu cầu của cơ quan nhà nước có thẩm quyền, bảo đảm phản ánh đầy đủ tình hình quản lý, sử dụng đất trên địa bàn.
+
+#### Điều 129. Hồ sơ địa chính
+
+[clause] 1. Hồ sơ địa chính bao gồm các tài liệu thể hiện thông tin chi tiết về từng thửa đất, người được giao quản lý đất, người sử dụng đất, chủ sở hữu tài sản gắn liền với đất, tình trạng pháp lý của thửa đất và tài sản gắn liền với đất
+------------------------
+output:
+("entity"<|>UY BAN NHAN DAN CAP TINH<|>local authority<|>Ủy ban nhân dân cấp tỉnh là cơ quan hành chính địa phương chịu trách nhiệm quản lý đất đai, quy định các điều kiện tối thiểu về diện tích, phê duyệt tách hoặc hợp thửa đất)##
+("entity"<|>TOA AN<|>judicial body<|>Tòa án là cơ quan tư pháp có thẩm quyền đưa ra bản án, quyết định phân chia quyền sử dụng đất trên thửa đất khi các điều kiện pháp luật không được đáp ứng)##
+("entity"<|>NGUOI SU DUNG DAT<|>citizen<|>Người sử dụng đất là công dân sở hữu và có quyền sử dụng đất, có thể đề xuất tách, hợp thửa hoặc chuyển mục đích sử dụng đất)##
+("entity"<|>THU VA DAT<|>land parcel<|>Thửa đất là đơn vị đất đai được ghi nhận trong hồ sơ địa chính, có thể tách, hợp thửa hoặc thay đổi mục đích sử dụng)##
+("entity"<|>QUY HOACH SU DUNG DAT<|>land use plan<|>Quy hoạch sử dụng đất là kế hoạch quy định mục đích, thời hạn và hình thức trả tiền thuê đất cho các thửa đất, là tiêu chuẩn để thực hiện tách, hợp thửa)##
+("entity"<|>LUAT DAT DAY<|>legal instrument<|>Luật Đất đai là văn bản pháp luật quy định nguyên tắc, điều kiện, thủ tục tách, hợp thửa, chuyển mục đích sử dụng đất và các quyền, nghĩa vụ của người dùng đất, cơ quan nhà nước và tòa án)##
+("relationship"<|>UY BAN NHAN DAN CAP TINH<|>THU VA DAT<|>Ủy ban nhân dân cấp tỉnh quy định các điều kiện tối thiểu về diện tích khi tách hoặc hợp thửa đất<|>9)##
+("relationship"<|>TOA AN<|>THU VA DAT<|>Tòa án quyết định phân chia quyền sử dụng đất trên thửa đất theo bản án, nếu không đáp ứng điều kiện không thực hiện tách thửa<|>8)##
+("relationship"<|>NGUOI SU DUNG DAT<|>UY BAN NHAN DAN CAP TINH<|>Người sử dụng đất phải nộp đề nghị và tuân thủ quyết định của Ủy ban nhân dân cấp tỉnh về giao, tách hoặc hợp thửa đất<|>7)##
+("relationship"<|>NGUOI SU DUNG DAT<|>THU VA DAT<|>Người sử dụng đất sở hữu và có quyền sử dụng thửa đất, có thể đề xuất tách hoặc hợp thửa<|>9)##
+("relationship"<|>QUY HOACH SU DUNG DAT<|>THU VA DAT<|>Quy hoạch sử dụng đất quy định mục đích sử dụng và yêu cầu các thửa đất hợp thửa phải cùng mục đích, thời hạn và hình thức trả tiền thuê<|>8)##
+("relationship"<|>UY BAN NHAN DAN CAP TINH<|>QUY HOACH SU DUNG DAT<|>Ủy ban nhân dân cấp tỉnh dựa trên quy hoạch sử dụng đất để phê duyệt hoặc từ chối tách, hợp thửa đất<|>7)##
+("relationship"<|>LUAT DAT DAY<|>UY BAN NHAN DAN CAP TINH<|>Luật Đất đai cung cấp cơ sở pháp lý cho Ủy ban nhân dân cấp tỉnh trong việc quản lý, tách và hợp thửa đất<|>9)##
+("relationship"<|>LUAT DAT DAY<|>TOA AN<|>Luật Đất đai quy định quyền và trách nhiệm của Tòa án trong việc phân chia quyền sử dụng đất<|>8)##
+("relationship"<|>LUAT DAT DAY<|>NGUOI SU DUNG DAT<|>Luật Đất đai quy định quyền và nghĩa vụ của người sử dụng đất trong việc đề xuất và thực hiện tách, hợp thửa, chuyển mục đích sử dụng đất<|>9)##
+("relationship"<|>LUAT DAT DAY<|>QUY HOACH SU DUNG DAT<|>Luật Đất đai đề cập đến việc lập và áp dụng quy hoạch sử dụng đất như một công cụ quản lý đất đai<|>7)##
+("relationship"<|>LUAT DAT DAY<|>THU VA DAT<|>Luật Đất đai quy định các nguyên tắc, điều kiện và thủ tục tách và hợp thỡ thửa đất<|>9)<|COMPLETE|>
+#############################
+
+
+
+-Real Data-
+######################
+entity_types: [citizen, government agency, local authority, economic organization, community group, land parcel, land right certificate, land use plan, statistical data, judicial body, investment project, legal instrument, public fund]
+text: {input_text}
+######################
+output:

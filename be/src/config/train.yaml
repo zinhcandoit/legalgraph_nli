@@ -1,0 +1,59 @@
+# Cấu hình huấn luyện mô hình NLI (ViLegalNLI - BamiBERT)
+seed: 42
+
+# 1. Cấu hình mô hình
+model:
+  base_model_name: "Qualcomm-AI-Research/BamiBERT"
+  num_labels: 2
+  id2label:
+    0: "CONTRADICTION/LOSE"
+    1: "ENTAILMENT/WIN"
+  label2id:
+    "CONTRADICTION/LOSE": 0
+    "ENTAILMENT/WIN": 1
+  gradient_checkpointing: true
+
+# 2. Cấu hình Tokenizer & Tiền xử lý
+tokenizer:
+  max_length: 2048
+  truncation: "only_second"  # Giữ trọn câu hỏi, chỉ cắt bớt ngữ cảnh nếu vượt quá 2048 tokens
+  padding: false             # Dynamic padding theo batch qua DataCollator
+  pad_to_multiple_of: 8
+
+# 3. Cấu hình Dataset
+data:
+  hf_dataset_repo: "ntphuc149/ViLegalNLI"  # Dataset trên Hugging Face
+  data_dir: "db/ViLegalNLI"               # Thư mục lưu dữ liệu train/val trong ML_final/db
+  train_file: "train.csv"
+  val_file: "val.csv"
+  text_column: "question"
+  text_pair_column: "context"
+  label_column: "label"
+
+# 4. Tham số huấn luyện (TrainingArguments)
+training:
+  output_dir: "be/src/NLIProvider/models/checkpoints"
+  best_model_dir: "be/src/NLIProvider/models/bamibert_vilegalnli"
+  num_train_epochs: 10
+  learning_rate: 2.0e-5
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 2
+  weight_decay: 0.01
+  warmup_steps: 100
+  optim: "adamw_torch"
+  fp16: true
+  eval_strategy: "epoch"
+  save_strategy: "epoch"
+  save_total_limit: 2
+  load_best_model_at_end: true
+  metric_for_best_model: "f1"
+  greater_is_better: true
+  logging_steps: 25
+  dataloader_num_workers: 0  # 0 tối ưu và ổn định nhất trên Windows khi chạy local
+  report_to: "none"
+
+# 5. Callbacks
+early_stopping:
+  patience: 2
+  threshold: 0.001

@@ -1,0 +1,41 @@
+[project]
+name = "ml-final"
+version = "0.1.0"
+description = "Hệ thống RAG và NLI phân tích văn bản pháp luật tiếng Việt (Luật Đất Đai 2024)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.8.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.0",
+    "langchain>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-google-genai>=2.0.0",
+    "langchain-huggingface>=0.1.0",
+    "sentence-transformers>=3.0.0",
+    "transformers>=4.44.0",
+    "datasets>=2.20.0",
+    "accelerate>=0.33.0",
+    "torch",
+    "torchvision",
+    "huggingface-hub>=0.24.0",
+    "graphrag>=0.3.0,<1.0.0",
+    "lancedb>=0.17.0",
+    "neo4j>=5.20.0",
+    "pandas>=2.2.0",
+    "pyarrow>=15.0.0",
+    "scikit-learn>=1.4.0",
+    "tqdm>=4.66.0",
+    "httpx>=0.27.0",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+torchvision = { index = "pytorch-cu130" }
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
