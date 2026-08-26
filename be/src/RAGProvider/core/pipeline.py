@@ -26,7 +26,7 @@ if str(ROOT_DIR) not in sys.path:
 NLI_SERVICE_URL = os.getenv("NLI_SERVICE_URL", "http://localhost:8001/predict")
 
 
-DIRECT_PROMPT_TEMPLATE = PromptTemplate.from_template("Trả lời ngắn gọn câu hỏi sau: {query}")
+DIRECT_PROMPT_TEMPLATE = PromptTemplate.from_template("Bạn là luật sư. Hãy trả lời câu hỏi sau: {query}")
 
 RAG_PROMPT_TEMPLATE = PromptTemplate.from_template(
     """Bạn là chuyên gia trợ lý pháp lý thông minh.
