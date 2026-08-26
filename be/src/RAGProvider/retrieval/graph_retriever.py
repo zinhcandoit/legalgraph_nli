@@ -113,7 +113,12 @@ class GraphRetriever:
         return []
 
     def _retrieve_neo4j(self, query: str, top_k: int = 15) -> List[Dict[str, Any]]:
-        """Truy vấn thực thể và đoạn văn bản liên quan từ Neo4j Knowledge Graph."""
+        """
+        Truy vấn dữ liệu từ Neo4j Knowledge Graph theo chuẩn Vector & Fulltext Index:
+        1. Thử Vector Index (db.index.vector.queryNodes) với embeddings bge-m3.
+        2. Kết hợp Vector Search trên Community Reports.
+        3. Fallback sang Fulltext Index hoặc Keyword search nếu Vector Index chưa được khởi tạo.
+        """
         if not self.neo4j_driver:
             self._init_neo4j()
         if not self.neo4j_driver:
@@ -122,9 +127,88 @@ class GraphRetriever:
 
         candidates = []
         retrieved_ids = set()
-        words = [w.lower() for w in re.findall(r'\w+', query) if len(w) > 2]
 
-        # 1. Tìm TextUnit trong Neo4j theo từ khóa
+        # 1. Neo4j Vector Search (nếu có embedding_model)
+        if self.embedding_model is not None:
+            try:
+                q_vec = [float(v) for v in self.embedding_model.embed_query(query)]
+                
+                # 1.1 Vector query trên TextUnit
+                cypher_vector_tu = """
+                CALL db.index.vector.queryNodes('text_unit_embeddings', $limit, $vector)
+                YIELD node, score
+                RETURN node.id AS id, node.text AS text, score, 'text_unit' AS source_type
+                """
+                with self.neo4j_driver.session(database=self.neo4j_db) as session:
+                    result = session.run(cypher_vector_tu, vector=q_vec, limit=top_k * 2)
+                    for record in result:
+                        cid = str(record["id"])
+                        if cid not in retrieved_ids:
+                            retrieved_ids.add(cid)
+                            candidates.append({
+                                "id": cid,
+                                "text": str(record["text"]),
+                                "source_type": record["source_type"],
+                                "score": float(record["score"]),
+                                "metadata": {"source": "neo4j_vector", "score": float(record["score"])},
+                            })
+
+                # 1.2 Vector query trên CommunityReport nếu còn chỗ
+                if len(candidates) < top_k:
+                    cypher_vector_comm = """
+                    CALL db.index.vector.queryNodes('community_report_embeddings', $limit, $vector)
+                    YIELD node, score
+                    RETURN node.id AS id, node.title + ': ' + node.summary AS text, score, 'community_report' AS source_type
+                    """
+                    with self.neo4j_driver.session(database=self.neo4j_db) as session:
+                        result = session.run(cypher_vector_comm, vector=q_vec, limit=top_k - len(candidates))
+                        for record in result:
+                            cid = str(record["id"])
+                            if cid not in retrieved_ids:
+                                retrieved_ids.add(cid)
+                                candidates.append({
+                                    "id": cid,
+                                    "text": str(record["text"]),
+                                    "source_type": record["source_type"],
+                                    "score": float(record["score"]),
+                                    "metadata": {"source": "neo4j_vector_community", "score": float(record["score"])},
+                                })
+
+                if candidates:
+                    logger.info(f"Đã truy xuất {len(candidates[:top_k])} chunks từ Neo4j Vector Index.")
+                    return candidates[:top_k]
+
+            except Exception as e:
+                logger.warning(f"Neo4j Vector Search chưa khả dụng hoặc gặp lỗi ({e}). Fallback sang Fulltext/Keyword search...")
+
+        # 2. Fallback sang Neo4j Fulltext Search
+        try:
+            cypher_fulltext = """
+            CALL db.index.fulltext.queryNodes('text_unit_fulltext', $query_text)
+            YIELD node, score
+            RETURN node.id AS id, node.text AS text, score, 'text_unit' AS source_type
+            LIMIT $limit
+            """
+            with self.neo4j_driver.session(database=self.neo4j_db) as session:
+                result = session.run(cypher_fulltext, query_text=query, limit=top_k)
+                for record in result:
+                    cid = str(record["id"])
+                    if cid not in retrieved_ids:
+                        retrieved_ids.add(cid)
+                        candidates.append({
+                            "id": cid,
+                            "text": str(record["text"]),
+                            "source_type": record["source_type"],
+                            "metadata": {"source": "neo4j_fulltext", "score": float(record["score"])},
+                        })
+            if candidates:
+                logger.info(f"Đã truy xuất {len(candidates[:top_k])} chunks từ Neo4j Fulltext Index.")
+                return candidates[:top_k]
+        except Exception as e:
+            logger.debug(f"Fulltext search lỗi: {e}")
+
+        # 3. Fallback cuối: Tìm TextUnit theo từ khóa chứa trong chuỗi
+        words = [w.lower() for w in re.findall(r'\w+', query) if len(w) > 2]
         cypher_textunit = """
         MATCH (t:TextUnit)
         WHERE any(word IN $words WHERE toLower(t.text) CONTAINS word)
@@ -142,54 +226,9 @@ class GraphRetriever:
                             "id": cid,
                             "text": str(record["text"]),
                             "source_type": record["source_type"],
-                            "metadata": {"source": "neo4j"},
+                            "metadata": {"source": "neo4j_keyword"},
                         })
         except Exception as e:
             logger.error(f"Lỗi khi query TextUnit trên Neo4j: {e}")
-
-        # 2. Nếu cần thêm, tìm CommunityReport trong Neo4j
-        if len(candidates) < top_k and self.neo4j_driver:
-            cypher_community = """
-            MATCH (c:CommunityReport)
-            WHERE any(word IN $words WHERE toLower(c.title) CONTAINS word OR toLower(c.summary) CONTAINS word)
-            RETURN c.id AS id, c.title + ': ' + c.summary AS text, 'community_report' AS source_type
-            LIMIT $limit
-            """
-            try:
-                with self.neo4j_driver.session(database=self.neo4j_db) as session:
-                    limit_rem = top_k - len(candidates)
-                    result = session.run(cypher_community, words=words, limit=limit_rem)
-                    for record in result:
-                        cid = str(record["id"])
-                        if cid not in retrieved_ids:
-                            retrieved_ids.add(cid)
-                            candidates.append({
-                                "id": cid,
-                                "text": str(record["text"]),
-                                "source_type": record["source_type"],
-                                "metadata": {"source": "neo4j"},
-                            })
-            except Exception as e:
-                logger.warning(f"Lỗi query CommunityReport trên Neo4j: {e}")
-
-        # 3. Fallback: Nếu không khớp từ khóa cụ thể, lấy các TextUnit mẫu đầu tiên từ Neo4j
-        if len(candidates) == 0 and self.neo4j_driver:
-            cypher_fallback = """
-            MATCH (t:TextUnit)
-            RETURN t.id AS id, t.text AS text, 'text_unit' AS source_type
-            LIMIT $limit
-            """
-            try:
-                with self.neo4j_driver.session(database=self.neo4j_db) as session:
-                    result = session.run(cypher_fallback, limit=top_k)
-                    for record in result:
-                        candidates.append({
-                            "id": str(record["id"]),
-                            "text": str(record["text"]),
-                            "source_type": record["source_type"],
-                            "metadata": {"source": "neo4j_fallback"},
-                        })
-            except Exception as e:
-                logger.warning(f"Lỗi fallback query trên Neo4j: {e}")
 
         return candidates[:top_k]

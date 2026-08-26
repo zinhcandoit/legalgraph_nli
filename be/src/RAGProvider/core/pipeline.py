@@ -26,12 +26,7 @@ if str(ROOT_DIR) not in sys.path:
 NLI_SERVICE_URL = os.getenv("NLI_SERVICE_URL", "http://localhost:8001/predict")
 
 
-DIRECT_PROMPT_TEMPLATE = PromptTemplate.from_template(
-    """Trả lời trực tiếp câu hỏi của người dùng và giải thích thật ngắn gọn.
-Câu hỏi:
-{query}
-"""
-)
+DIRECT_PROMPT_TEMPLATE = PromptTemplate.from_template("Trả lời ngắn gọn câu hỏi sau: {query}")
 
 RAG_PROMPT_TEMPLATE = PromptTemplate.from_template(
     """Bạn là chuyên gia trợ lý pháp lý thông minh.
@@ -72,21 +67,20 @@ class RAGPipeline:
             blocks.append(f"[Trích đoạn {i} ({chunk.source_type})]:\n{chunk.text}")
         return "\n\n".join(blocks)
 
-    def _verify_nli(self, query: str, answer: str, context_chunks: List[RetrievedChunk], is_rag: bool) -> Optional[NLIVerificationResult]:
-        if not answer or not answer.strip() or not context_chunks:
+    def _verify_nli(self, query: str, answer: str) -> Optional[NLIVerificationResult]:
+        if not answer or not answer.strip() or not query or not query.strip():
             return None
 
-        context_text = " ".join([c.text for c in context_chunks[:3]])
+        clean_query = query.strip()
         clean_ans = answer.strip()
-        hypothesis_text = f"Câu hỏi: {query}. Nhận định: {clean_ans[:400]}"
 
         try:
             with httpx.Client(timeout=8.0) as client:
                 res = client.post(
                     NLI_SERVICE_URL,
                     json={
-                        "specific_question": hypothesis_text,
-                        "legal_document": context_text,
+                        "specific_question": clean_query,
+                        "legal_document": clean_ans,
                     },
                 )
                 if res.status_code == 200:
@@ -99,9 +93,9 @@ class RAGPipeline:
 
                     is_valid = (label_id == 1 or "ENTAILMENT" in label.upper() or "WIN" in label.upper())
                     note = (
-                        "Căn cứ pháp lý chứng thực đầy đủ cho câu trả lời."
+                        "Đánh giá NLI: Hợp lệ (Entailment/Win)."
                         if is_valid
-                        else "Cảnh báo: Câu trả lời có thể chứa thông tin mâu thuẫn hoặc chưa có căn cứ rõ ràng trong điều luật."
+                        else "Cảnh báo NLI: Mâu thuẫn/Không thỏa mãn (Contradiction/Lose)."
                     )
                     return NLIVerificationResult(
                         is_valid=is_valid,
@@ -113,14 +107,7 @@ class RAGPipeline:
         except Exception as e:
             logger.warning(f"Lỗi kết nối NLI Service: {e}")
 
-        is_valid = is_rag and len(context_chunks) > 0
-        return NLIVerificationResult(
-            is_valid=is_valid,
-            label="ENTAILMENT/WIN" if is_valid else "CONTRADICTION/LOSE",
-            confidence=0.90 if is_valid else 0.45,
-            probabilities={"ENTAILMENT/WIN": 0.90 if is_valid else 0.45, "CONTRADICTION/LOSE": 0.10 if is_valid else 0.55},
-            note="Xác thực tự động dựa trên mức độ tương thích ngữ cảnh." if is_valid else "Cảnh báo: Không có căn cứ luật đối chiếu.",
-        )
+        return None
 
     def run(
         self,
@@ -138,7 +125,7 @@ class RAGPipeline:
         rewritten_query = None
         retrieved_chunks: List[RetrievedChunk] = []
 
-        # 1. w/o RAG: Direct LCEL Chain
+        # 1. w/o RAG: Direct LLM -> NLI Verification (Hypothesis: Answer, Premise: Query)
         if not rag:
             try:
                 answer = str(self.direct_chain.invoke({"query": query_clean})).strip()
@@ -146,18 +133,8 @@ class RAGPipeline:
                 logger.error(f"Lỗi Direct LLM: {e}")
                 answer = f"Lỗi tạo câu trả lời: {str(e)}"
 
-            verify_chunks = []
-            candidate_docs = self.retriever.retrieve(query=query_clean, top_k=3)
-            for doc in candidate_docs:
-                verify_chunks.append(
-                    RetrievedChunk(
-                        id=doc.get("id"),
-                        text=doc.get("text", ""),
-                        source_type=doc.get("source_type", "text_unit"),
-                    )
-                )
-
-            nli_verification = self._verify_nli(query_clean, answer, verify_chunks, is_rag=False)
+            # NLI kiểm chứng: 2 input (Hypothesis: answer, Premise: query)
+            nli_verification = self._verify_nli(query=query_clean, answer=answer)
             latency_ms = round((time.perf_counter() - start_time) * 1000, 2)
             return {
                 "request_id": request_id,
@@ -210,7 +187,7 @@ class RAGPipeline:
             logger.error(f"Lỗi RAG Generation: {e}")
             answer = f"Lỗi tạo câu trả lời tổng hợp: {str(e)}"
 
-        nli_verification = self._verify_nli(rewritten_query, answer, retrieved_chunks, is_rag=True)
+        nli_verification = self._verify_nli(query=query_clean, answer=answer)
         latency_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
         return {

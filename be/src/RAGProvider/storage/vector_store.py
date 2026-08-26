@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,7 @@ ROOT_DIR = Path(__file__).resolve().parents[4]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from ..logger import logger
+from be.src.RAGProvider.logger import logger
 
 # Tải biến môi trường từ .env
 load_dotenv(ROOT_DIR / ".env")
@@ -42,11 +42,13 @@ class Neo4jGraphStore:
         username: Optional[str] = None,
         password: Optional[str] = None,
         database: Optional[str] = None,
+        embedding_model: Optional[Any] = None,
     ):
         self.uri = uri or os.getenv("NEO4J_URI")
         self.username = username or os.getenv("NEO4J_USERNAME")
         self.password = password or os.getenv("NEO4J_PASSWORD")
         self.database = database or os.getenv("NEO4J_DATABASE", "neo4j")
+        self.embedding_model = embedding_model
         self.driver = None
 
         if not self.uri or not self.username or not self.password:
@@ -59,29 +61,66 @@ class Neo4jGraphStore:
         self.driver.verify_connectivity()
         logger.info(f"Kết nối Neo4j thành công tại: {self.uri} (Database: {self.database})")
 
+    def _get_embedding_model(self):
+        if self.embedding_model is None:
+            from be.src.RAGProvider.models.embedding import EmbeddingModel
+            self.embedding_model = EmbeddingModel()
+        return self.embedding_model
+
     def close(self):
         if self.driver:
             self.driver.close()
             logger.info("Đã đóng kết nối Neo4j.")
 
     def create_constraints_and_indexes(self):
-        """Tạo Constraints (Unique) và Indexes trên Neo4j để tối ưu hiệu năng import và query."""
+        """Tạo Constraints, Vector Indexes và Fulltext Indexes trên Neo4j theo tài liệu chính thức."""
         queries = [
+            # 1. Unique Constraints
             "CREATE CONSTRAINT entity_id_unique IF NOT EXISTS FOR (e:Entity) REQUIRE e.id IS UNIQUE",
             "CREATE CONSTRAINT entity_name_unique IF NOT EXISTS FOR (e:Entity) REQUIRE e.name IS UNIQUE",
             "CREATE CONSTRAINT text_unit_id_unique IF NOT EXISTS FOR (t:TextUnit) REQUIRE t.id IS UNIQUE",
             "CREATE CONSTRAINT community_id_unique IF NOT EXISTS FOR (c:CommunityReport) REQUIRE c.id IS UNIQUE",
+            # 2. Standard Indexes
             "CREATE INDEX entity_title_idx IF NOT EXISTS FOR (e:Entity) ON (e.title)",
             "CREATE INDEX entity_type_idx IF NOT EXISTS FOR (e:Entity) ON (e.type)",
             "CREATE INDEX text_unit_doc_idx IF NOT EXISTS FOR (t:TextUnit) ON (t.document_id)",
+            # 3. Vector Indexes (1024 chiều - BAAI/bge-m3, Cosine Similarity)
+            """
+            CREATE VECTOR INDEX text_unit_embeddings IF NOT EXISTS
+            FOR (t:TextUnit)
+            ON (t.embedding)
+            OPTIONS {
+              indexConfig: {
+                `vector.dimensions`: 1024,
+                `vector.similarity_function`: 'cosine'
+              }
+            }
+            """,
+            """
+            CREATE VECTOR INDEX community_report_embeddings IF NOT EXISTS
+            FOR (c:CommunityReport)
+            ON (c.embedding)
+            OPTIONS {
+              indexConfig: {
+                `vector.dimensions`: 1024,
+                `vector.similarity_function`: 'cosine'
+              }
+            }
+            """,
+            # 4. Fulltext Index cho Hybrid Search
+            """
+            CREATE FULLTEXT INDEX text_unit_fulltext IF NOT EXISTS
+            FOR (t:TextUnit)
+            ON EACH [t.text]
+            """,
         ]
         with self.driver.session(database=self.database) as session:
             for q in queries:
                 try:
-                    session.run(q)
+                    session.run(q.strip())
                 except Exception as e:
-                    logger.warning(f"Lỗi khi tạo schema/index ('{q}'): {e}")
-        logger.info("Đã thiết lập xong Neo4j Constraints & Indexes.")
+                    logger.warning(f"Lỗi hoặc index đã tồn tại khi chạy query: {e}")
+        logger.info("Đã thiết lập xong Neo4j Constraints, Vector & Fulltext Indexes.")
 
     def clear_database(self):
         """Xóa toàn bộ dữ liệu trong Neo4j (Cẩn trọng)."""
@@ -91,22 +130,27 @@ class Neo4jGraphStore:
         logger.info("Đã dọn dẹp sạch Neo4j Database.")
 
     def import_text_units(self, parquet_path: Path, batch_size: int = 50):
-        """Import TextUnits từ text_units.parquet vào node (:TextUnit)."""
+        """Import TextUnits từ text_units.parquet vào node (:TextUnit) kèm Dense Vector Embeddings."""
         if not parquet_path.exists():
             logger.warning(f"Không tìm thấy file {parquet_path}")
             return
 
         df = pd.read_parquet(parquet_path)
-        logger.info(f"Bắt đầu import {len(df)} TextUnits...")
+        logger.info(f"Bắt đầu tính toán embeddings và import {len(df)} TextUnits...")
+
+        emb_model = self._get_embedding_model()
+        texts = [str(row.get("text", "")) for _, row in df.iterrows()]
+        vectors = emb_model.embed_documents(texts)
 
         records = []
-        for _, row in df.iterrows():
+        for idx, (_, row) in enumerate(df.iterrows()):
             records.append({
                 "id": str(row["id"]),
                 "human_readable_id": int(row.get("human_readable_id", 0)),
                 "text": str(row.get("text", "")),
                 "n_tokens": int(row.get("n_tokens", 0)),
                 "document_id": str(row.get("document_id", "")),
+                "embedding": [float(v) for v in vectors[idx]],
             })
 
         query = """
@@ -115,14 +159,15 @@ class Neo4jGraphStore:
         SET t.human_readable_id = row.human_readable_id,
             t.text = row.text,
             t.n_tokens = row.n_tokens,
-            t.document_id = row.document_id
+            t.document_id = row.document_id,
+            t.embedding = row.embedding
         """
 
         with self.driver.session(database=self.database) as session:
             for i in range(0, len(records), batch_size):
                 batch = records[i : i + batch_size]
                 session.run(query, batch=batch)
-        logger.info(f"Đã import thành công {len(records)} TextUnits vào Neo4j.")
+        logger.info(f"Đã import thành công {len(records)} TextUnits (kèm vector embeddings) vào Neo4j.")
 
     def import_entities(self, parquet_path: Path, batch_size: int = 200):
         """Import Entities từ entities.parquet vào node (:Entity)."""
@@ -218,7 +263,7 @@ class Neo4jGraphStore:
         logger.info(f"Đã import thành công {len(records)} Relationships giữa các Entity.")
 
     def import_community_reports(self, parquet_path: Path, batch_size: int = 50):
-        """Import Community Reports từ community_reports.parquet vào node (:CommunityReport)."""
+        """Import Community Reports từ community_reports.parquet vào node (:CommunityReport) kèm Embeddings."""
         if not parquet_path.exists():
             logger.warning(f"Không tìm thấy file {parquet_path}")
             return
@@ -226,8 +271,12 @@ class Neo4jGraphStore:
         df = pd.read_parquet(parquet_path)
         logger.info(f"Bắt đầu import {len(df)} Community Reports...")
 
+        emb_model = self._get_embedding_model()
+        comm_texts = [f"{str(r.get('title', ''))}: {str(r.get('summary', ''))}" for _, r in df.iterrows()]
+        vectors = emb_model.embed_documents(comm_texts)
+
         records = []
-        for _, row in df.iterrows():
+        for idx, (_, row) in enumerate(df.iterrows()):
             records.append({
                 "id": str(row["id"]),
                 "human_readable_id": int(row.get("human_readable_id", 0)),
@@ -239,6 +288,7 @@ class Neo4jGraphStore:
                 "full_content": str(row.get("full_content", "")),
                 "rank": float(row.get("rank", 0.0)),
                 "rating_explanation": str(row.get("rating_explanation", "")),
+                "embedding": [float(v) for v in vectors[idx]],
             })
 
         query = """
@@ -252,7 +302,8 @@ class Neo4jGraphStore:
             c.summary = row.summary,
             c.full_content = row.full_content,
             c.rank = row.rank,
-            c.rating_explanation = row.rating_explanation
+            c.rating_explanation = row.rating_explanation,
+            c.embedding = row.embedding
         """
 
         with self.driver.session(database=self.database) as session:
@@ -260,11 +311,12 @@ class Neo4jGraphStore:
                 batch = records[i : i + batch_size]
                 session.run(query, batch=batch)
 
-        logger.info(f"Đã import thành công {len(records)} Community Reports vào Neo4j.")
+        logger.info(f"Đã import thành công {len(records)} Community Reports (kèm embeddings) vào Neo4j.")
 
     def import_all_from_dir(self, graph_dir: Optional[Union[str, Path]] = None, clear_first: bool = False):
         """Đồng bộ toàn bộ các bảng Parquet trong thư mục graph_database lên Neo4j."""
-        target_dir = Path(graph_dir) if graph_dir else ROOT_DIR / "db" / "graph_database"
+        from be.src.config.config import config
+        target_dir = Path(graph_dir) if graph_dir else ROOT_DIR / config.storage.graph_db_path
         if not target_dir.exists():
             raise FileNotFoundError(f"Không tìm thấy thư mục graph database tại: {target_dir}")
 
@@ -275,16 +327,16 @@ class Neo4jGraphStore:
 
         self.create_constraints_and_indexes()
 
-        # 1. Text Units
+        # 1. Text Units kèm Vector Embeddings
         self.import_text_units(target_dir / "text_units.parquet")
 
-        # 2. Entities
+        # 2. Entities & MENTIONS
         self.import_entities(target_dir / "entities.parquet")
 
-        # 3. Relationships
+        # 3. Relationships RELATED_TO
         self.import_relationships(target_dir / "relationships.parquet")
 
-        # 4. Community Reports
+        # 4. Community Reports kèm Vector Embeddings
         self.import_community_reports(target_dir / "community_reports.parquet")
 
         # In thống kê sau khi import
