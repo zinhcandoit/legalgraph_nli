@@ -131,4 +131,4 @@ User Query => Query Rewriter => Graph DB (LanceDB/Neo4j) => TopK Chunks => Enhan
 ```
 
 * **Chế độ `rag = True` (w/ RAG)**: Tra cứu căn cứ pháp lý trong đồ thị Luật, rerank văn bản và chạy NLI kiểm chứng xem câu trả lời có được chứng thực (**Entailment**) bởi điều luật hay không.
-* **Chế độ `rag = False` (w/o RAG)**: Hỏi trực tiếp LLM, đồng thời đối chiếu với căn cứ luật thực tế để phát hiện **Ảo giác (Hallucination / Contradiction)**.
+* **Chế độ `rag = False` (w/o RAG)**: Hỏi trực tiếp LLM và chạy NLI để phát hiện **Ảo giác (Hallucination / Contradiction)**.
