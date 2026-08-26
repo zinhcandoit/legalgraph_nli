@@ -10,6 +10,7 @@ import httpx
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 
+from be.src.config.config import config
 from ..logger import logger
 from ..models.embedding import EmbeddingModel
 from ..models.llm import GeminiModel, get_llm
@@ -26,18 +27,15 @@ NLI_SERVICE_URL = os.getenv("NLI_SERVICE_URL", "http://localhost:8001/predict")
 
 
 DIRECT_PROMPT_TEMPLATE = PromptTemplate.from_template(
-    """Bạn là chuyên gia tư vấn pháp luật chuẩn xác và thông minh.
-Hãy trả lời câu hỏi sau của người dùng một cách rõ ràng, mạch lạc và súc tích:
-
+    """Trả lời trực tiếp câu hỏi của người dùng và giải thích thật ngắn gọn.
 Câu hỏi:
 {query}
-
-Trả lời:"""
+"""
 )
 
 RAG_PROMPT_TEMPLATE = PromptTemplate.from_template(
-    """Bạn là chuyên gia trợ lý pháp lý thông minh và chuẩn mực.
-Hãy dựa vào các căn cứ và điều khoản pháp luật được trích dẫn dưới đây để trả lời câu hỏi của người dùng một cách chính xác, logic và trích dẫn điều khoản cụ thể.
+    """Bạn là chuyên gia trợ lý pháp lý thông minh.
+Hãy dựa vào các căn cứ và điều khoản pháp luật được trích dẫn dưới đây để trả lời câu hỏi chính xác và trích dẫn điều khoản cụ thể.
 Nếu các trích đoạn dưới đây không chứa thông tin trả lời, hãy tự tin trả lời là "Không có chứng cứ xác minh".
 
 CĂN CỨ VÀ NGỮ CẢNH PHÁP LÝ:
@@ -128,7 +126,7 @@ class RAGPipeline:
         self,
         query: str,
         rag: bool = True,
-        top_k: int = 5,
+        top_k: Optional[int] = None,
         session_id: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
@@ -178,13 +176,20 @@ class RAGPipeline:
                 "metadata": metadata,
             }
 
-        # 2. w/ RAG: Query -> Rewriter -> GraphDB -> Chunks -> LCEL Chain
-        rewritten_query = rewrite_query(query_clean, llm=self.llm_model)
-        candidate_docs = self.retriever.retrieve(query=rewritten_query, top_k=20)
+        # 2. w/ RAG: Query -> Rewriter (tùy config) -> GraphDB -> Chunks -> Reranker -> LCEL Chain
+        if config.retrieval.rewrite_query:
+            rewritten_query = rewrite_query(query_clean, llm=self.llm_model)
+        else:
+            rewritten_query = query_clean
+
+        search_k = config.retrieval.search_k
+        effective_top_k = top_k if top_k is not None else config.retrieval.rerank_top_k
+
+        candidate_docs = self.retriever.retrieve(query=rewritten_query, top_k=search_k)
         ranked_results = self.reranker.rerank(
             query=rewritten_query,
             documents=candidate_docs,
-            top_k=top_k,
+            top_k=effective_top_k,
         )
 
         for doc, score in ranked_results:

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 
@@ -9,7 +9,7 @@ class ModelConfig:
     gemini: str = "gemma-4-26b-a4b-it"
     nli: str = "TQZinh/BamiBERT-ViLegalNLI"
     device: Optional[str] = "cuda"
-    max_new_tokens: int = 2048
+    max_new_tokens: int = 4096
     temperature: float = 0.0
 
 
@@ -23,15 +23,15 @@ class StorageConfig:
 @dataclass
 class RetrievalConfig:
     search_k: int = 20
-    rerank_top_k: int = 5
+    rerank_top_k: int = 3
     rewrite_query: bool = True
 
 
 @dataclass
 class PipelineConfig:
-    models: ModelConfig = ModelConfig()
-    storage: StorageConfig = StorageConfig()
-    retrieval: RetrievalConfig = RetrievalConfig()
+    models: ModelConfig = field(default_factory=ModelConfig)
+    storage: StorageConfig = field(default_factory=StorageConfig)
+    retrieval: RetrievalConfig = field(default_factory=RetrievalConfig)
 
 
 config = PipelineConfig()

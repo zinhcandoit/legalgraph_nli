@@ -33,6 +33,12 @@ if not logger.handlers:
     logger.addHandler(file_handler)
 
     # Console Handler
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
     console_handler = logging.StreamHandler(sys.stdout)
     console_formatter = logging.Formatter(
         "[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s",

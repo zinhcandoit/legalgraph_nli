@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 from huggingface_hub import snapshot_download
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, RobertaTokenizerFast
 
 from ..logger import logger
 
@@ -16,9 +16,9 @@ ROOT_DIR = Path(__file__).resolve().parents[4]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-# Nạp cấu hình từ src/be/config/config.py
+# Nạp cấu hình từ be/src/config/config.py
 try:
-    from src.be.config.config import config
+    from be.src.config.config import config
     MODEL_NAME = config.models.nli
 except ImportError:
     try:
@@ -68,7 +68,10 @@ class NLIEngine:
 
         # 2. Nạp tokenizer và mô hình
         logger.info(f"Nạp mô hình từ: {self.model_dir} (Thiết bị: {self.device})")
-        self.tokenizer = AutoTokenizer.from_pretrained(str(self.model_dir))
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(str(self.model_dir))
+        except Exception:
+            self.tokenizer = RobertaTokenizerFast.from_pretrained(str(self.model_dir))
         self.model = AutoModelForSequenceClassification.from_pretrained(str(self.model_dir))
         self.model.to(self.device)
         self.model.eval()

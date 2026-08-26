@@ -24,7 +24,7 @@ class RAGRequest(BaseModel):
         default=True,
         description="Flag quyết định dùng RAG (True) hay trả lời trực tiếp từ LLM (False)"
     )
-    top_k: int = Field(default=5, description="Số lượng đoạn văn bản trích dẫn tối đa đưa vào LLM")
+    top_k: Optional[int] = Field(default=None, description="Số lượng đoạn văn bản trích dẫn tối đa đưa vào LLM (nếu None sẽ lấy theo RetrievalConfig trong config.py)")
     session_id: Optional[str] = Field(default=None, description="ID phiên hội thoại")
     metadata: Optional[Dict[str, Any]] = Field(default=None, description="Metadata kèm theo request")
 
