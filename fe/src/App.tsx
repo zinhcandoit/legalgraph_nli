@@ -53,7 +53,7 @@ export const App: React.FC = () => {
       const res = await sendRAGQuery(
         queryText,
         currentSession.rag_enabled,
-        5,
+        undefined,
         currentSession.id
       );
 
@@ -112,6 +112,7 @@ export const App: React.FC = () => {
         <Header
           title={currentSession?.title || 'Đoạn chat mới'}
           ragEnabled={currentSession?.rag_enabled ?? true}
+          isLoading={isLoading}
           onToggleRAG={handleToggleRAG}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onClearChat={clearCurrentMessages}
@@ -120,6 +121,7 @@ export const App: React.FC = () => {
         <ChatArea
           messages={currentSession?.messages || []}
           isLoading={isLoading}
+          ragEnabled={currentSession?.rag_enabled ?? true}
           onSendSuggestion={handleSendMessage}
         />
 

@@ -22,6 +22,7 @@ import { ChunkModal } from './ChunkModal';
 interface ChatAreaProps {
   messages: Message[];
   isLoading: boolean;
+  ragEnabled: boolean;
   onSendSuggestion: (prompt: string) => void;
 }
 
@@ -35,6 +36,7 @@ const SAMPLE_PROMPTS = [
 export const ChatArea: React.FC<ChatAreaProps> = ({
   messages,
   isLoading,
+  ragEnabled,
   onSendSuggestion,
 }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -265,12 +267,30 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       {/* Loading indicator */}
       {isLoading && (
         <div className="flex gap-3.5 max-w-4xl mx-auto items-start">
-          <div className="w-8 h-8 rounded-xl bg-accentGreen/20 border border-accentGreen/30 text-accentGreen flex items-center justify-center flex-shrink-0">
-            <Scale className="w-4 h-4 animate-pulse" />
+          <div
+            className={`w-8 h-8 rounded-xl border flex items-center justify-center flex-shrink-0 mt-1 ${
+              ragEnabled
+                ? 'bg-accentGreen/20 border-accentGreen/30 text-accentGreen'
+                : 'bg-amber-500/20 border-amber-500/30 text-amber-400'
+            }`}
+          >
+            {ragEnabled ? (
+              <Scale className="w-4 h-4 animate-pulse" />
+            ) : (
+              <Zap className="w-4 h-4 animate-pulse" />
+            )}
           </div>
-          <div className="bg-cardBg border border-borderDark/60 rounded-2xl rounded-tl-sm px-4 py-3 text-xs text-gray-400 flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-accentGreen animate-ping" />
-            <span>Đang tra cứu đồ thị pháp luật, tạo câu trả lời và chạy kiểm định NLI...</span>
+          <div className="bg-cardBg border border-borderDark/60 rounded-2xl rounded-tl-sm px-4 py-3 text-xs text-gray-300 flex items-center gap-2.5 shadow-sm">
+            <span
+              className={`inline-block w-2 h-2 rounded-full animate-ping flex-shrink-0 ${
+                ragEnabled ? 'bg-accentGreen' : 'bg-amber-400'
+              }`}
+            />
+            <span>
+              {ragEnabled
+                ? 'Đang tra cứu đồ thị pháp luật, tạo câu trả lời và chạy kiểm định NLI...'
+                : 'Đang gửi truy vấn trực tiếp tới mô hình LLM (chế độ Direct LLM)...'}
+            </span>
           </div>
         </div>
       )}

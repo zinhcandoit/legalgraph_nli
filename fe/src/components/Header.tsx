@@ -1,9 +1,10 @@
 import React from 'react';
-import { Menu, Sparkles, Zap, Database, Trash2, Info } from 'lucide-react';
+import { Menu, Zap, Database, Trash2 } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
   ragEnabled: boolean;
+  isLoading?: boolean;
   onToggleRAG: () => void;
   onToggleSidebar: () => void;
   onClearChat: () => void;
@@ -12,6 +13,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   title,
   ragEnabled,
+  isLoading = false,
   onToggleRAG,
   onToggleSidebar,
   onClearChat,
@@ -38,7 +40,11 @@ export const Header: React.FC<HeaderProps> = ({
 
       <div className="flex items-center gap-3">
         {/* RAG Switch Button */}
-        <div className="flex items-center gap-2 bg-cardBg/90 border border-borderDark/80 rounded-full px-3 py-1 shadow-sm">
+        <div
+          className={`flex items-center gap-2 bg-cardBg/90 border border-borderDark/80 rounded-full px-3 py-1 shadow-sm transition-all duration-200 ${
+            isLoading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+          }`}
+        >
           <div className="flex items-center gap-1.5 text-xs font-medium">
             {ragEnabled ? (
               <span className="flex items-center gap-1 text-emerald-400">
@@ -57,11 +63,18 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             role="switch"
             aria-checked={ragEnabled}
+            disabled={isLoading}
             onClick={onToggleRAG}
-            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              ragEnabled ? 'bg-accentGreen' : 'bg-gray-600'
-            }`}
-            title={ragEnabled ? 'Đang BẬT RAG (Tra cứu đồ thị luật)' : 'Đang TẮT RAG (Hỏi trực tiếp LLM)'}
+            className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+              isLoading ? 'cursor-not-allowed' : 'cursor-pointer'
+            } ${ragEnabled ? 'bg-accentGreen' : 'bg-gray-600'}`}
+            title={
+              isLoading
+                ? 'Đang gửi truy vấn, không thể đổi chế độ'
+                : ragEnabled
+                ? 'Đang BẬT RAG (Tra cứu đồ thị luật)'
+                : 'Đang TẮT RAG (Hỏi trực tiếp LLM)'
+            }
           >
             <span
               className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${

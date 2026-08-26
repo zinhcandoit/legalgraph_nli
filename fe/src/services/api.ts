@@ -14,20 +14,24 @@ export async function checkServerHealth(): Promise<boolean> {
 export async function sendRAGQuery(
   query: string,
   rag: boolean,
-  top_k: number = 5,
+  top_k?: number,
   sessionId?: string
 ): Promise<RAGApiResponse> {
+  const payload: Record<string, any> = {
+    query,
+    rag,
+    session_id: sessionId,
+  };
+  if (typeof top_k === 'number') {
+    payload.top_k = top_k;
+  }
+
   const response = await fetch(`${API_BASE_URL}/query`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      query,
-      rag,
-      top_k,
-      session_id: sessionId,
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

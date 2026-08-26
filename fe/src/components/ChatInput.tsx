@@ -1,18 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Database, Zap } from 'lucide-react';
+import { Send } from 'lucide-react';
 
 interface ChatInputProps {
   isLoading: boolean;
   ragEnabled: boolean;
   onSendMessage: (query: string) => void;
-  onToggleRAG: () => void;
+  onToggleRAG?: () => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
   isLoading,
   ragEnabled,
   onSendMessage,
-  onToggleRAG,
 }) => {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
