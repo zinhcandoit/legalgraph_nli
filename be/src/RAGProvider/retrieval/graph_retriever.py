@@ -20,7 +20,7 @@ class GraphRetriever:
     """
     Module truy xuất dữ liệu từ Graph Database:
     - Kiểm tra linh hoạt theo từng request (Dynamic Detection):
-      1. Nếu thư mục local LanceDB (được định nghĩa trong config) tồn tại -> Sử dụng LanceDB Vector Search.
+      1. Nếu thư mục local LanceDB và Graph Parquet tồn tại -> Sử dụng LanceDB Vector Search kết hợp mapping Parquet text.
       2. Nếu local không có / không mở được -> Tự động chuyển sang Neo4j Cloud.
     """
 
@@ -30,7 +30,46 @@ class GraphRetriever:
         self.lancedb_dir = LANCEDB_DIR
         self.neo4j_driver = None
         self.neo4j_db = os.getenv("NEO4J_DATABASE", "neo4j")
-        self._init_neo4j()
+        self._neo4j_attempted = False
+        self._text_units_map: Optional[Dict[str, str]] = None
+        self._community_reports_map: Optional[Dict[str, str]] = None
+        self._load_parquet_cache()
+        # Chỉ khởi tạo Neo4j nếu không có Local LanceDB
+        if self._get_lancedb_table() is None:
+            self._init_neo4j()
+
+    def _load_parquet_cache(self):
+        """Tải trước ánh xạ id -> text từ các file Parquet để phục vụ tra cứu sau khi vector search."""
+        try:
+            tu_path = self.graph_dir / "text_units.parquet"
+            if tu_path.exists():
+                df_tu = pd.read_parquet(tu_path)
+                if "id" in df_tu.columns and "text" in df_tu.columns:
+                    self._text_units_map = dict(zip(df_tu["id"].astype(str), df_tu["text"].astype(str)))
+                    logger.info(f"Đã nạp {len(self._text_units_map)} text units từ {tu_path.name}")
+        except Exception as e:
+            logger.warning(f"Lỗi khi đọc text_units.parquet: {e}")
+            self._text_units_map = {}
+
+        try:
+            cr_path = self.graph_dir / "community_reports.parquet"
+            if cr_path.exists():
+                df_cr = pd.read_parquet(cr_path)
+                if "id" in df_cr.columns:
+                    cr_map = {}
+                    for _, row in df_cr.iterrows():
+                        cid = str(row["id"])
+                        full = str(row.get("full_content", ""))
+                        if not full:
+                            title = str(row.get("title", ""))
+                            summary = str(row.get("summary", ""))
+                            full = f"{title}: {summary}" if title or summary else ""
+                        cr_map[cid] = full
+                    self._community_reports_map = cr_map
+                    logger.info(f"Đã nạp {len(self._community_reports_map)} community reports từ {cr_path.name}")
+        except Exception as e:
+            logger.warning(f"Lỗi khi đọc community_reports.parquet: {e}")
+            self._community_reports_map = {}
 
     @property
     def mode(self) -> str:
@@ -55,30 +94,38 @@ class GraphRetriever:
         return None
 
     def _init_neo4j(self):
-        """Khởi tạo kết nối Neo4j driver từ biến môi trường."""
-        if self.neo4j_driver is not None:
+        """Khởi tạo kết nối Neo4j driver từ biến môi trường nếu có cấu hình."""
+        if self.neo4j_driver is not None or self._neo4j_attempted:
             return
+        self._neo4j_attempted = True
         uri = os.getenv("NEO4J_URI")
         username = os.getenv("NEO4J_USERNAME")
         password = os.getenv("NEO4J_PASSWORD")
         self.neo4j_db = os.getenv("NEO4J_DATABASE", "neo4j")
 
-        if uri and username and password:
+        if uri and username and password and "<" not in uri and "<" not in password:
             try:
                 from neo4j import GraphDatabase
-                self.neo4j_driver = GraphDatabase.driver(uri, auth=(username, password))
+                self.neo4j_driver = GraphDatabase.driver(
+                    uri,
+                    auth=(username, password),
+                    connection_timeout=5.0,
+                    max_connection_lifetime=300,
+                )
                 self.neo4j_driver.verify_connectivity()
                 logger.info(f"Kết nối Neo4j sẵn sàng tại: {uri}")
             except Exception as e:
-                logger.warning(f"Chưa thể kết nối Neo4j: {e}")
+                logger.warning(
+                    f"Chưa thể kết nối Neo4j ({e}). Sẽ ưu tiên sử dụng Local LanceDB làm kho lưu trữ."
+                )
                 self.neo4j_driver = None
 
     def retrieve(self, query: str, top_k: int = 15) -> List[Dict[str, Any]]:
         """
         Truy xuất ngữ cảnh linh hoạt theo từng request:
         - Kiểm tra trực tiếp thư mục local LanceDB lúc gọi hàm.
-        - Nếu có local LanceDB -> Thực hiện Vector Search.
-        - Nếu không có local LanceDB -> Chuyển sang Neo4j.
+        - Nếu có local LanceDB -> Thực hiện Vector Search và map với Parquet Text.
+        - Nếu không có local LanceDB hoặc không ra kết quả -> Chuyển sang Neo4j.
         """
         candidates = []
         table = self._get_lancedb_table()
@@ -86,31 +133,45 @@ class GraphRetriever:
         # 1. Kiểm tra và ưu tiên Local LanceDB Vector Search
         if table is not None and self.embedding_model is not None:
             try:
+                if self._text_units_map is None:
+                    self._load_parquet_cache()
+
                 q_vec = self.embedding_model.embed_query(query)
                 results = table.search(q_vec).limit(top_k * 2).to_pandas()
                 for _, row in results.iterrows():
                     chunk_id = str(row.get("id", ""))
-                    text_content = str(row.get("text", ""))
+                    text_content = ""
+                    if self._text_units_map and chunk_id in self._text_units_map:
+                        text_content = self._text_units_map[chunk_id]
+                    elif "text" in row and pd.notna(row["text"]):
+                        text_content = str(row["text"])
+
                     if text_content:
+                        score = 0.0
+                        if "_distance" in row:
+                            score = round(max(0.0, 1.0 - float(row["_distance"])), 4)
                         candidates.append({
                             "id": chunk_id,
                             "text": text_content,
                             "source_type": "text_unit",
+                            "score": score,
                             "metadata": {"search_mode": "lancedb_vector"},
                         })
+
                 if candidates:
                     logger.info(f"Đã truy xuất {len(candidates[:top_k])} chunks từ Local LanceDB.")
                     return candidates[:top_k]
             except Exception as e:
                 logger.warning(f"Vector search qua LanceDB không thành công ({e}). Chuyển sang Neo4j...")
 
-        # 2. Nếu không có Local LanceDB -> Truy xuất từ Neo4j
-        logger.info("Chuyển sang truy xuất dữ liệu từ Neo4j Database...")
-        neo4j_candidates = self._retrieve_neo4j(query, top_k=top_k)
-        if neo4j_candidates:
-            return neo4j_candidates
+        # 2. Nếu không có Local LanceDB hoặc LanceDB không có dữ liệu -> Fallback sang Neo4j
+        if self.neo4j_driver is not None:
+            logger.info("Chuyển sang truy xuất dữ liệu từ Neo4j Database...")
+            neo4j_candidates = self._retrieve_neo4j(query, top_k=top_k)
+            if neo4j_candidates:
+                return neo4j_candidates
 
-        return []
+        return candidates[:top_k]
 
     def _retrieve_neo4j(self, query: str, top_k: int = 15) -> List[Dict[str, Any]]:
         """

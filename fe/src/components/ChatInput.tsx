@@ -52,7 +52,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Hỏi về quy định pháp luật đất đai 2024 (Enter để gửi, Shift+Enter xuống dòng)..."
+          placeholder="Hỏi về các quy định pháp luật (Enter để gửi, Shift+Enter xuống dòng)..."
           rows={1}
           disabled={isLoading}
           className="w-full bg-transparent text-gray-100 text-sm placeholder-gray-500 py-3.5 pl-4 pr-24 resize-none focus:outline-none max-h-48"
@@ -83,7 +83,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             </strong>
           </span>
         </div>
-        <span>VietLegal AI 2024 • BamiBERT ViLegalNLI</span>
+        <span>VietLegal AI • BamiBERT ViLegalNLI</span>
       </div>
     </div>
   );

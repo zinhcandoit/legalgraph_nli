@@ -5,7 +5,7 @@ Given a text document that is potentially relevant to this activity and a list o
 -Steps-
 1. Identify all entities. For each identified entity, extract the following information:
 - entity_name: Name of the entity, capitalized
-- entity_type: One of the following types: [citizen, government agency, local authority, economic organization, community group, land parcel, land right certificate, land use plan, statistical data, judicial body, investment project, legal instrument, public fund]
+- entity_type: One of the following types: [court, judge, prosecutor, inspector, arbitrator, legal_entity, individual, government_agency, insurance_entity, legal_document, mediation_officer, investigation_agency, witness, expert]
 - entity_description: Comprehensive description of the entity's attributes and activities
 Format each entity as ("entity"<|><entity_name><|><entity_type><|><entity_description>)
 
@@ -28,163 +28,184 @@ Format each relationship as ("relationship"<|><source_entity><|><target_entity><
 
 Example 1:
 
-entity_types: [citizen, government agency, local authority, economic organization, community group, land parcel, land right certificate, land use plan, statistical data, judicial body, investment project, legal instrument, public fund]
+entity_types: [court, judge, prosecutor, inspector, arbitrator, legal_entity, individual, government_agency, insurance_entity, legal_document, mediation_officer, investigation_agency, witness, expert]
 text:
-ất đai theo quy định của Hiến pháp, Luật Hoạt động giám sát của Quốc hội và Hội đồng nhân dân, Luật Mặt trận Tổ quốc Việt Nam và Luật Tổ chức chính quyền địa phương.
+ trừ trường hợp thuộc thẩm quyền giải quyết của cơ quan, tổ chức khác theo quy định của pháp luật.
 
-#### Điều 231. Giám sát của công dân đối với việc quản lý, sử dụng đất đai
+Điều 30. Những tranh chấp về kinh doanh, thương mại thuộc thẩm quyền giải quyết của Tòa án
 
-[clause] 1. Công dân tự mình hoặc thông qua các tổ chức đại diện thực hiện quyền giám sát, phản ánh và yêu cầu, kiến nghị cơ quan có thẩm quyền xử lý các sai phạm trong quản lý, sử dụng đất đai.
+1. Tranh chấp phát sinh trong hoạt động kinh doanh, thương mại giữa cá nhân, tổ chức có đăng ký kinh doanh với nhau và đều có mục đích lợi nhuận.
 
-[clause] 2. Việc giám sát, phản ánh và yêu cầu, kiến nghị phải bảo đảm khách quan, trung thực, đúng pháp luật; không được lợi dụng quyền giám sát để khiếu nại, tố cáo không đúng quy định của pháp luật, làm mất trật tự xã hội; chịu trách nhiệm trước pháp luật về tính chính xác các thông tin do mình phản ánh.
+2. Tranh chấp về quyền sở hữu trí tuệ, chuyển giao công nghệ giữa cá nhân, tổ chức với nhau và đều có mục đích lợi nhuận.
 
-[clause] 3. Nội dung giám sát của công dân trong quản lý, sử dụng đất đai bao gồm:
+3. Tranh chấp giữa người chưa phải là thành viên công ty nhưng có giao dịch về chuyển nhượng phần vốn góp với công ty, thành viên công ty.
 
-a) Việc lập, điều chỉnh, công bố công khai, thực hiện quy hoạch, kế hoạch sử dụng đất;
+4. Tranh chấp giữa công ty với các thành viên của công ty; tranh chấp giữa công ty với người quản lý trong công ty trách nhiệm hữu hạn hoặc thành viên Hội đồng quản trị, giám đốc, tổng giám đốc trong công ty cổ phần, giữa các thành viên của công ty với nhau liên quan đến việc thành lập, hoạt động, giải thể, sáp nhập, hợp nhất, chia, tách, bàn giao tài sản của công ty, chuyển đổi hình thức tổ chức của công ty.
 
-b) Việc giao đất, cho thuê đất, cho phép chuyển mục đích sử dụng đất;
+5. Các tranh chấp khác về kinh doanh, thương mại, trừ trường hợp thuộc thẩm quyền giải quyết của cơ quan, tổ chức khác theo quy định của pháp luật.
 
-c) Việc thu hồi đất, bồi thường, hỗ trợ và tái định cư;
+Điều 31. Những yêu cầu về kinh doanh, thương mại thuộc thẩm quyền giải quyết của Tòa án
 
-d) Việc đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, Giấy chứng nhận quyền sở hữu nhà ở và quyền sử dụng đất ở, Giấy chứng nhận quyền sở hữu nhà ở, Giấy chứng nhận quyền sở hữu công trình xây dựng, Giấy chứng nhận quyền sử dụng đất, quyền sở hữu nhà ở và tài sản khác gắn liền với đất, Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất;
+1. Yêu cầu hủy bỏ nghị quyết của Đại hội đồng cổ đông, nghị quyết của Hội đồng thành viên theo quy định của pháp luật về doanh nghiệp.
 
-đ) Việc thu, miễn, giảm tiền sử dụng đất, tiền thuê đất, thuế liên quan đến đất đai; định giá đất;
+2. Yêu cầu liên quan đến việc Trọng tài thương mại Việt Nam giải quyết tranh chấp theo quy định của pháp luật về Trọng tài thương mại.
 
-e) Việc thực hiện các thủ tục hành chính liên quan đến quyền và nghĩa vụ của người sử dụng đất.
+3. Yêu cầu bắt giữ tàu bay, tàu biển theo quy định của pháp luật về hàng không dân dụng Việt Nam, về hàng hải Việt Nam, trừ trường hợp bắt giữ tàu bay, tàu biển để bảo đảm giải quyết vụ án.
 
-[clause] 4. Hình thức giám sát của công dân trong quản lý, sử dụng đất đai bao gồm:
+4. Yêu cầu công nhận và cho thi hành tại Việt Nam hoặc không công nhận bản án, quyết định kinh doanh, thương mại của Tòa án nước ngoài hoặc không công nhận bản án, quyết định kinh doanh, thương mại của Tòa án nước ngoài không có yêu cầu thi hành tại Việt Nam.
 
-a) Trực tiếp thực hiện quyền giám sát thông qua việc phản ánh, kiến nghị đến các cơ quan, người có thẩm quyền giải quyết;
+5. Yêu cầu công nhận và cho thi hành tại Việt Nam phán quyết kinh doanh, thương mại của Trọng tài nước ngoài.
 
-b) Gửi đơn kiến nghị đến các tổ chức đại diện được pháp luật công nhận để các tổ chức này thực hiện việc giám sát.
+6. Các yêu cầu khác về kinh doanh, thương mại, trừ trường hợp thuộc thẩm quyền giải quyết của cơ quan, tổ chức khác theo quy định của pháp luật.
 
-[clause] 5. Cơ quan nhà nước có thẩm quyền khi nhận được phản ánh, kiến
+Điều 32. Những tranh chấp về lao động thuộc thẩm quyền giải quyết của Tòa án
+
+1. Tranh chấp lao động cá nhân giữa người lao động với người sử dụng lao động phải thông qua thủ tục hòa giải của hòa giải viên lao động mà hòa giải thành nhưng các bên không thực hiện hoặc thực hiện không đúng, hòa giải không thành hoặc không hòa giải trong thời hạn do pháp luật
 ------------------------
 output:
-("entity"<|>NGƯỜI SỬ DỤNG ĐẤT<|>citizen<|>Công dân, cá nhân hoặc tổ chức có quyền sử dụng đất, thực hiện các thủ tục tách thửa, hợp thửa, chuyển mục đích sử dụng đất và đáp ứng yêu cầu của cơ quan nhà nước)##
-("entity"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>local authority<|>Cơ quan chính quyền địa phương có thẩm quyền quyết định về việc tách, hợp, chuyển mục đích sử dụng thửa đất, quy định diện tích tối thiểu và phê duyệt các kế hoạch đất đai)##
-("entity"<|>TÒÁN<|>judicial body<|>Cơ quan tư pháp, ra bản án, quyết định về phân chia quyền sử dụng đất; quyết định của Tòa án có thể cho phép hoặc ngăn cản việc tách thửa đất nếu không đáp ứng các điều kiện pháp lý)##
-("entity"<|>THỬA ĐẤT<|>land parcel<|>Đơn vị địa chính, mảnh đất được ghi nhận trong hồ sơ địa chính; chịu quy định về tách, hợp, chuyển mục đích sử dụng và yêu cầu diện tích tối thiểu)##
-("relationship"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>THỬA ĐẤT<|>Ủy ban nhân dân cấp tỉnh quy định diện tích tối thiểu và phê duyệt việc tách hoặc hợp thửa đất<|>9)##
-("relationship"<|>TÒÁN<|>THỬA ĐẤT<|>Tòa án đưa ra bản án hoặc quyết định phân chia quyền sử dụng đất, quyết định việc tách thửa hoặc ngăn cản nếu không đáp ứng điều kiện<|>8)##
-("relationship"<|>NGƯỜI SỬ DỤNG ĐẤT<|>THỬA ĐẤT<|>Người sử dụng đất là chủ sở hữu hoặc người có quyền sử dụng thửa đất, thực hiện tách, hợp, chuyển mục đích sử dụng<|>9)##
-("relationship"<|>NGƯỜI SỬ DỤNG ĐẤT<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>Người sử dụng đất gửi đề xuất và phải tuân thủ quyết định của Ủy ban nhân dân cấp tỉnh khi tách hoặc hợp thửa<|>8)##
-("relationship"<|>NGƯỜI SỬ DỤNG ĐẤT<|>TÒÁN<|>Trong trường hợp phân chia quyền sử dụng đất theo bản án, người sử dụng đất thực hiện theo quyết định của Tòa án<|>7)##
-("relationship"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>NGƯỜI SỬ DỤNG ĐẤT<|>Ủy ban nhân dân cấp tỉnh phê duyệt hoặc từ chối đề xuất của người sử dụng đất về tách, hợp, chuyển mục đích<|>8)##
-("relationship"<|>TÒÁN<|>NGƯỜI SỬ DỤNG ĐẤT<|>Tòa án có thể ra quyết định ảnh hưởng trực tiếp đến quyền sử dụng đất của người sử dụng đất<|>6)##
-("relationship"<|>THỬA ĐẤT<|>NGƯỜI SỬ DỤNG ĐẤT<|>Thửa đất là tài sản mà người sử dụng đất sở hữu hoặc có quyền sử dụng<|>9)##
+("entity"<|>BỘ LUẬT<|>legal_document<|>Bộ luật là văn bản pháp luật quy định chung về quyền, nghĩa vụ và thẩm quyền của các cơ quan tư pháp như Viện kiểm sát, Tòa án, Kiểm sát viên và Kiểm tra viên)##
+("entity"<|>ĐIỀU 58<|>legal_document<|>Điều 58 quy định nhiệm vụ, quyền hạn của Kiểm sát viên trong việc kiểm sát và giám sát quá trình tố tụng dân sự)##
+("entity"<|>ĐIỀU 59<|>legal_document<|>Điều 59 quy định nhiệm vụ, quyền hạn của Kiểm tra viên trong việc tiến hành hoạt động tố tụng dân sự và hỗ trợ Kiểm sát viên)##
+("entity"<|>ĐIỀU 60<|>legal_document<|>Điều 60 quy định quy trình thay đổi, thay thế Kiểm sát viên và Kiểm tra viên trong các trường hợp pháp luật quy định)##
+("entity"<|>TÒA ÁN<|>court<|>Tòa án là cơ quan xét xử, giải quyết tranh chấp, đưa ra bản án, quyết định trong các vụ án hình sự và dân sự)##
+("entity"<|>VIỆN KIỂM SÁT<|>government_agency<|>Viện kiểm sát là cơ quan công tố nhà nước, chịu trách nhiệm kiểm sát việc tuân thủ pháp luật trong tố tụng, giám sát hoạt động của Tòa án và các bên tham gia tố tụng)##
+("entity"<|>KIỂM SÁT VIÊN<|>prosecutor<|>Kiểm sát viên là công tố viên, thực hiện kiểm sát, nghiên cứu hồ sơ, yêu cầu Tòa án thu thập chứng cứ và kiểm sát bản án, quyết định của Tòa án)##
+("entity"<|>KIỂM TRA VIÊN<|>inspector<|>Kiểm tra viên là công chức thực hiện các hoạt động tố tụng, lập hồ sơ, báo cáo và hỗ trợ Kiểm sát viên trong việc kiểm sát)##
+("entity"<|>VIÊN TRƯỞNG<|>individual<|>Viên trưởng là người đứng đầu Viện kiểm sát, có thẩm quyền ủy nhiệm, chịu trách nhiệm cuối cùng về các quyết định và hoạt động của Viện)##
+("entity"<|>PHÓ VIÊN TRƯỞNG<|>individual<|>Phó Viện trưởng là người được Viên trưởng ủy nhiệm thay mặt khi Viên trưởng vắng mặt, chịu trách nhiệm trước Viên trưởng về việc thực hiện nhiệm vụ được giao)##
+("entity"<|>THẨM PHÁN<|>judge<|>Thẩm phán là người xét xử vụ án tại Tòa án, đưa ra quyết định, bản án)##
+("entity"<|>HỘI THẨM NHÂN DÂN<|>legal_entity<|>Hội thẩm nhân dân là tổ chức tư pháp tập hợp các thẩm phán nhân dân để cùng xét xử các vụ án dân sự, hình sự)##
+("entity"<|>THẨM TRA VIÊN<|>inspector<|>Thẩm tra viên là công chức thực hiện công vụ thẩm tra, thu thập chứng cứ, kiểm tra việc tuân thủ pháp luật trong tố tụng)##
+("entity"<|>ĐƠN KHỞI KIỆN<|>legal_document<|>Đơn khởi kiện là văn bản khởi tố, yêu cầu Tòa án giải quyết tranh chấp dân sự)##
+("entity"<|>ĐƠN YÊU CẦU<|>legal_document<|>Đơn yêu cầu là văn bản trình bày yêu cầu pháp lý, được nộp trong quá trình tố tụng dân sự)##
+("entity"<|>QUYẾT ĐỊNH<|>legal_document<|>Quyết định là văn bản pháp lý của Tòa án hoặc Viện kiểm sát, có giá trị pháp luật và phải được kiểm sát)##
+("relationship"<|>VIÊN TRƯỞNG<|>PHÓ VIÊN TRƯỞNG<|>Viên trưởng ủy nhiệm cho Phó Viện trưởng thực hiện nhiệm vụ, quyền hạn khi Viên trưởng vắng mặt<|>8)##
+("relationship"<|>PHÓ VIÊN TRƯỞNG<|>VIÊN TRƯỞNG<|>Phó Viện trưởng chịu trách nhiệm trước Viên trưởng về việc thực hiện nhiệm vụ được ủy quyền<|>7)##
+("relationship"<|>VIỆN KIỂM SÁT<|>KIỂM SÁT VIÊN<|>Viện kiểm sát là cơ quan chủ quản, chỉ đạo và giao nhiệm vụ cho Kiểm sát viên<|>9)##
+("relationship"<|>VIỆN KIỂM SÁT<|>KIỂM TRA VIÊN<|>Viện kiểm sát chỉ định Kiểm tra viên thực hiện các hoạt động tố tụng và hỗ trợ Kiểm sát viên<|>9)##
+("relationship"<|>KIỂM SÁT VIÊN<|>TÒA ÁN<|>Kiểm sát viên yêu cầu Tòa án thu thập chứng cứ, kiểm sát bản án và quyết định của Tòa án<|>8)##
+("relationship"<|>KIỂM SÁT VIÊN<|>QUYẾT ĐỊNH<|>Kiểm sát viên kiểm sát quyết định của Tòa án để đảm bảo tính hợp pháp<|>8)##
+("relationship"<|>KIỂM TRA VIÊN<|>KIỂM SÁT VIÊN<|>Kiểm tra viên giúp, báo cáo và hỗ trợ Kiểm sát viên trong việc lập hồ sơ và kiểm sát<|>7)##
+("relationship"<|>THẨM PHÁN<|>TÒA ÁN<|>Thẩm phán là thành phần của Tòa án, thực hiện xét xử vụ án tại Tòa án<|>9)##
+("relationship"<|>HỘI THẨM NHÂN DÂN<|>TÒA ÁN<|>Hội thẩm nhân dân là bộ phận của Tòa án thực hiện xét xử cùng Thẩm phán<|>6)##
+("relationship"<|>THẨM TRA VIÊN<|>KIỂM SÁT VIÊN<|>Thẩm tra viên được Kiểm sát viên chỉ định thực hiện công tác thu thập chứng cứ, thẩm tra tài liệu<|>7)##
+("relationship"<|>ĐƠN KHỞI KIỆN<|>KIỂM SÁT VIÊN<|>Kiểm sát viên nghiên cứu, kiểm sát hồ sơ Đơn khởi kiện trong vụ việc dân sự<|>6)##
+("relationship"<|>ĐƠN YÊU CẦU<|>KIỂM SÁT VIÊN<|>Kiểm sát viên xem xét, kiểm sát Đơn yêu cầu trong quá trình tố tụng dân sự<|>6)##
+("relationship"<|>BỘ LUẬT<|>VIỆN KIỂM SÁT<|>Bộ luật quy định quyền hạn, nhiệm vụ của Viện kiểm sát và các cơ quan như Kiểm sát viên, Kiểm tra viên<|>7)##
+("relationship"<|>BỘ LUẬT<|>TÒA ÁN<|>Bộ luật cung cấp khung pháp lý điều chỉnh hoạt động của Tòa án<|>7)##
+("relationship"<|>ĐIỀU 58<|>KIỂM SÁT VIÊN<|>Điều 58 quy định chi tiết nhiệm vụ, quyền hạn của Kiểm sát viên<|>9)##
+("relationship"<|>ĐIỀU 59<|>KIỂM TRA VIÊN<|>Điều 59 quy định chi tiết nhiệm vụ, quyền hạn của Kiểm tra viên<|>9)##
+("relationship"<|>ĐIỀU 60<|>KIỂM SÁT VIÊN<|>Điều 60 quy định quy trình thay đổi, thay thế Kiểm sát viên<|>8)##
+("relationship"<|>ĐIỀU 60<|>KIỂM TRA VIÊN<|>Điều 60 quy định quy trình thay đổi, thay thế Kiểm tra viên<|>8)##
+("relationship"<|>KIỂM SÁT VIÊN<|>KIỂM TRA VIÊN<|>Kiểm sát viên giám sát, chỉ đạo Kiểm tra viên trong thực hiện nhiệm vụ<|>8)##
 <|COMPLETE|>
 #############################
 
 
 Example 2:
 
-entity_types: [citizen, government agency, local authority, economic organization, community group, land parcel, land right certificate, land use plan, statistical data, judicial body, investment project, legal instrument, public fund]
+entity_types: [court, judge, prosecutor, inspector, arbitrator, legal_entity, individual, government_agency, insurance_entity, legal_document, mediation_officer, investigation_agency, witness, expert]
 text:
- dụng đất các cấp. Bộ Tài nguyên và Môi trường, cơ quan có chức năng quản lý đất đai cấp tỉnh có trách nhiệm công bố công khai kết quả điều tra, đánh giá đất đai trong thời hạn 30 ngày kể từ ngày được cơ quan có thẩm quyền phê duyệt.
+ượng từ 20 gam đến dưới 100 gam;
 
-### Mục 3. THỐNG KÊ, KIỂM KÊ ĐẤT ĐAI
+n) Các chất ma túy khác ở thể lỏng có thể tích từ 100 mililít đến dưới 250 mililít;
 
-#### Điều 56. Nguyên tắc thống kê, kiểm kê đất đai
+o) Có 02 chất ma túy trở lên mà tổng số lượng của các chất đó tương đương với số lượng chất ma túy quy định tại một trong các điểm từ điểm g đến điểm n khoản này;
 
-[clause] 1. Trung thực, khách quan, chính xác, kịp thời, phản ánh đầy đủ hiện trạng và cơ cấu sử dụng đất đai.
+p) Tái phạm nguy hiểm.
 
-[clause] 2. Công khai, minh bạch, độc lập về chuyên môn, nghiệp vụ.
+3. Phạm tội thuộc một trong các trường hợp sau đây, thì bị phạt tù từ 15 năm đến 20 năm:
 
-[clause] 3. Thống nhất về nghiệp vụ, phương pháp thống kê, kiểm kê đất đai và chế độ báo cáo.
+a) Nhựa thuốc phiện, nhựa cần sa hoặc cao cô ca có khối lượng từ 01 kilôgam đến dưới 05 kilôgam;
 
-[clause] 4. Bảo đảm chỉ tiêu thống kê, kiểm kê đất đai thống nhất, đồng bộ từ trung ương đến địa phương; hệ thống số liệu thống kê, kiểm kê đất đai được tổng hợp từ cấp dưới lên cấp trên trực tiếp.
+b) Hêrôin, côcain, Methamphetamine, Amphetamine, MDMA có khối lượng từ 30 gam đến dưới 100 gam;
 
-[clause] 5. Cung cấp kịp thời số liệu để phục vụ công tác quản lý nhà nước về đất đai và nhu cầu thông tin đất đai cho các hoạt động kinh tế, xã hội, quốc phòng, an ninh, nghiên cứu khoa học, giáo dục và đào tạo và các nhu cầu khác của Nhà nước và xã hội.
+c) Lá, rễ, thân, cành, hoa, quả cây cần sa hoặc lá cây côca có khối lượng từ 25 kilôgam đến dưới 75 kilôgam;
 
-#### Điều 57. Phạm vi, đối tượng thống kê, kiểm kê đất đai
+d) Quả thuốc phiện khô có khối lượng từ 200 kilôgam đến dưới 600 kilôgam;
 
-[clause] 1. Thống kê, kiểm kê đất đai được thực hiện trên phạm vi đơn vị hành chính cấp xã, cấp huyện, cấp tỉnh và phạm vi cả nước.
+đ) Quả thuốc phiện tươi có khối lượng từ 50 kilôgam đến dưới 150 kilôgam;
 
-[clause] 2. Thời gian thực hiện thống kê, kiểm kê đất đai như sau:
+e) Các chất ma túy khác ở thể rắn có khối lượng từ 100 gam đến dưới 300 gam;
 
-a) Thống kê đất đai được thực hiện hằng năm, tính đến hết ngày 31 tháng 12 của năm thống kê, trừ năm thực hiện kiểm kê đất đai;
+g) Các chất ma túy khác ở thể lỏng có thể tích từ 250 mililít đến dưới 750 mililít;
 
-b) Kiểm kê đất đai được thực hiện 05 năm một lần, tính đến hết ngày 31 tháng 12 của năm có chữ số cuối là 4 hoặc 9.
+h) Có 02 chất ma túy trở lên mà tổng số lượng của các chất đó tương đương với số lượng chất ma túy quy định tại một trong các điểm từ điểm a đến điểm g khoản này.
 
-[clause] 3. Kiểm kê đất đai chuyên đề được thực hiện theo yêu cầu của quản lý nhà nước về đất đai trong từng thời kỳ do Bộ trưởng Bộ Tài nguyên và Môi trường, Chủ tịch Ủy ban nhân dân cấp tỉnh quyết định.
+4. Phạm tội thuộc một trong các trường hợp sau đây, thì bị phạt tù 20 năm, tù chung thân hoặc tử hình:
 
-#### Điều 58. Chỉ tiêu, nội dung, hoạt động thống kê, kiểm kê đất đai
+a) Nhựa thuốc phiện, nhựa cần sa hoặc cao côca có khối lượng 05 kilôgam trở lên;
 
-[clause] 1. Chỉ tiêu thống kê, kiểm kê đất đai đối với các loại đất quy định tại Điều 9 của Luật này bao gồm:
+b) Hêrôin, côcain, Methamphetamine, Amphetamine, MDMA có khối lượng 100 gam trở lên;
 
-a) Diện tích;
+c) Lá, rễ, thân, cành, hoa, quả cây cần sa hoặc lá cây côca có khối lượng 75 kilôgam trở lên;
 
-b) Đối tượng sử d
+d) Quả thuốc phiện khô có khối lượng 600 kilôgam trở lên;
+
+đ) Quả thuốc phiện tươi có khối lượng 150 kilôgam trở lên;
+
+e) Các chất ma túy khác ở thể rắn có khối lượng 300 gam trở lên;
+
+g) Các chất ma túy khác ở thể lỏng có thể tích 750 mililít trở lên;
+
+h) Có 02 chất ma túy trở lên mà tổng số lượng của các chất đó tương đương với số lượng chất ma túy quy định tại một trong các điểm từ điểm a đến điểm g khoản này.
+
+5. Người phạm tội còn có thể bị phạt tiền từ 5.000.000 đồng đến 500.000.000 đồng, cấm đảm nhiệm chức vụ, cấm hành nghề hoặc làm công việc nhất định từ 01 năm đến 05 năm hoặc tịch thu một phần hoặc toàn bộ tài sản.
+
+Điều 251. Tội mua bán trái phép chất ma túy
+
+1. Người nào mua bán trái phép chất ma túy, thì bị phạt tù từ 02 năm đến 07 năm.
+
+2. Phạm tội trong các trường hợp sau đây, thì bị phạt tù từ 07 năm đến 15 năm:
+
+a) Có tổ chức;
+
+b) Phạm tội 02 lần trở lên;
+
+c) Mua bán với 02 người trở lên;
+
+d) Lợi dụng chức vụ, quyền hạn;
+
+đ) Lợi dụng danh nghĩa cơ
 ------------------------
 output:
-("entity"<|>CÔNG DÂN<|>citizen<|>Công dân là người sử dụng và sở hữu đất, có quyền đề xuất giao đất, tách thửa, hợp thửa và yêu cầu chuyển đổi mục đích sử dụng đất theo quy định của Luật).##
-("entity"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>local authority<|>Ủy ban nhân dân cấp tỉnh là cơ quan quản lý nhà nước địa phương, chịu trách nhiệm phê duyệt giao đất, tách thửa, hợp thửa và các quy định về diện tích tối thiểu khi thay đổi mục đích sử dụng đất).##
-("entity"<|>TÒA ÁN<|>judicial body<|>Tòa án là cơ quan tư pháp, ra quyết định, bản án phân chia quyền sử dụng đất; quyết định của tòa án có thể ngăn cản hoặc cho phép việc tách thửa nếu không đáp ứng các điều kiện quy định).##
-("entity"<|>LUẬT NÀY<|>legal instrument<|>Luật này là văn bản pháp luật quy định nguyên tắc, điều kiện, thủ tục tách thửa, hợp thửa, chuyển mục đích sử dụng đất và các quyền, nghĩa vụ của người sử dụng đất).##
-("entity"<|>THỬA ĐẤT<|>land parcel<|>Thửa đất là đơn vị địa chính quy định diện tích, mục đích sử dụng, thời hạn sử dụng và quyền sử dụng; thửa đất có thể bị tách, hợp, hoặc chuyển mục đích sử dụng theo quy định).##
-("relationship"<|>CÔNG DÂN<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>Công dân đề xuất giao đất, tách thửa hoặc hợp thửa và nộp hồ sơ lên Ủy ban nhân dân cấp tỉnh để được phê duyệt<|>8).##
-("relationship"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>LUẬT NÀY<|>Ủy ban nhân dân cấp tỉnh thực thi và áp dụng các quy định của Luật này trong việc quyết định tách, hợp thửa đất<|>9).##
-("relationship"<|>TÒA ÁN<|>LUẬT NÀY<|>Tòa án áp dụng các quy định của Luật này khi ra bản án, quyết định phân chia quyền sử dụng đất<|>8).##
-("relationship"<|>LUẬT NÀY<|>THỬA ĐẤT<|>Luật này quy định các nguyên tắc, điều kiện và thủ tục liên quan đến việc tách, hợp thửa và chuyển mục đích sử dụng của thửa đất<|>9).##
-("relationship"<|>CÔNG DÂN<|>THỬA ĐẤT<|>Công dân là người sử dụng và sở hữu thửa đất, có quyền yêu cầu thay đổi mục đích hoặc thực hiện tách, hợp thửa<|>6).##
-("relationship"<|>ỦY BAN NHÂN DÂN CẤP TỈNH<|>THỬA ĐẤT<|>Ủy ban nhân dân cấp tỉnh có thẩm quyền phê duyệt tách thửa, hợp thửa và chuyển mục đích sử dụng của thửa đất<|>8).##
-("relationship"<|>TÒA ÁN<|>THỬA ĐẤT<|>Tòa án quyết định phân chia quyền sử dụng đất, ảnh hưởng tới việc tách thửa nếu quyết định không đáp ứng các tiêu chuẩn quy định<|>7).##
+("entity"<|>TÒA ÁN<|>court<|>Cơ quan xét xử vụ án dân sự, hình sự, có thẩm quyền ra bản án, quyết định và giám sát việc thi hành bản án)##  
+("entity"<|>VIỆN KIỂM SÁT<|>government_agency<|>Cơ quan nhà nước thực hiện chức năng công tố, giám sát việc tuân thủ pháp luật trong tố tụng, thuộc hệ thống tư pháp)##  
+("entity"<|>VIỆN TRƯỞNG VIỆN KIỂM SÁT<|>individual<|>Người đứng đầu Viện kiểm sát, chịu trách nhiệm lãnh đạo, chỉ đạo và phân công nhiệm vụ cho Kiểm sát viên và Kiểm tra viên)##  
+("entity"<|>PHÓ VIỆN TRƯỞNG VIỆN KIỂM SÁT<|>individual<|>Người thay thế Viện trưởng khi Viện trưởng vắng mặt, được ủy quyền thực hiện các nhiệm vụ, quyền hạn của Viện trưởng)##  
+("entity"<|>KIỂM SÁT VIÊN<|>prosecutor<|>Công chứng viên, thành viên Viện kiểm sát, có thẩm quyền giám sát tuân thủ pháp luật, đưa ra kiến nghị, kháng nghị quyết định của Tòa án)##  
+("entity"<|>KIỂM TRA VIÊN<|>inspector<|>Cán bộ kiểm tra, thực hiện việc thu thập, nghiên cứu hồ sơ, hỗ trợ Kiểm sát viên trong quá trình tố tụng)##  
+("entity"<|>ĐIỀU 58<|>legal_document<|>Điều quy định nhiệm vụ, quyền hạn và trách nhiệm của Kiểm sát viên trong tố tụng dân sự)##  
+("entity"<|>ĐIỀU 59<|>legal_document<|>Điều quy định nhiệm vụ, quyền hạn và trách nhiệm của Kiểm tra viên khi thực hiện hoạt động tố tụng)##  
+("entity"<|>ĐIỀU 60<|>legal_document<|>Điều quy định quy trình thay đổi Kiểm sát viên, Kiểm tra viên và các trường hợp không được thực hiện)##  
+("entity"<|>ĐIỀU 52<|>legal_document<|>Điều quy định các trường hợp mà Kiểm sát viên, Kiểm tra viên phải từ chối tiến hành tố tụng)##  
+("entity"<|>BỘ LUẬT<|>legal_document<|>Bộ luật quy định chung về tố tụng dân sự, các quyền hạn, nhiệm vụ của các cơ quan và cá nhân trong hệ thống tư pháp)##  
+("relationship"<|>VIỆN TRƯỞNG VIỆN KIỂM SÁT<|>PHÓ VIỆN TRƯỞNG VIỆN KIỂM SÁT<|>Viện trưởng ủy nhiệm Phó Viện trưởng thực hiện nhiệm vụ, quyền hạn khi Viện trưởng vắng mặt<|>9)##  
+("relationship"<|>PHÓ VIỆN TRƯỞNG VIỆN KIỂM SÁT<|>VIỆN TRƯỞNG VIỆN KIỂM SÁT<|>Phó Viện trưởng chịu trách nhiệm báo cáo, thực hiện công việc theo chỉ đạo của Viện trưởng<|>8)##  
+("relationship"<|>VIỆN TRƯỞNG VIỆN KIỂM SÁT<|>KIỂM SÁT VIÊN<|>Viện trưởng phân công Kiểm sát viên thực hiện kiểm sát việc tuân theo pháp luật trong tố tụng dân sự<|>8)##  
+("relationship"<|>KIỂM SÁT VIÊN<|>TÒA ÁN<|>Kiểm sát viên giám sát, kiểm tra bản án, quyết định của Tòa án và đề nghị kháng nghị khi phát hiện vi phạm pháp luật<|>7)##  
+("relationship"<|>KIỂM SÁT VIÊN<|>VIỆN KIỂM SÁT<|>Kiểm sát viên là thành viên, thực hiện chức năng công tố thuộc Viện kiểm sát<|>9)##  
+("relationship"<|>KIỂM SÁT VIÊN<|>VIỆN TRƯỞNG VIỆN KIỂM SÁT<|>Kiểm sát viên đề nghị Viện trưởng có thẩm quyền kháng nghị bản án, quyết định của Tòa án<|>6)##  
+("relationship"<|>VIỆN TRƯỞNG VIỆN KIỂM SÁT<|>KIỂM TRA VIÊN<|>Viện trưởng phân công Kiểm tra viên thực hiện các hoạt động tố tụng, lập hồ sơ và hỗ trợ Kiểm sát viên<|>8)##  
+("relationship"<|>KIỂM TRA VIÊN<|>KIỂM SÁT VIÊN<|>Kiểm tra viên hỗ trợ Kiểm sát viên trong việc nghiên cứu hồ sơ, lập hồ sơ kiểm sát vụ việc dân sự<|>7)##  
+("relationship"<|>KIỂM TRA VIÊN<|>VIỆN KIỂM SÁT<|>Kiểm tra viên là cán bộ thuộc Viện kiểm sát, thực hiện kiểm tra, giám sát việc thực hiện pháp luật<|>8)##  
+("relationship"<|>ĐIỀU 58<|>KIỂM SÁT VIÊN<|>Điều 58 quy định chi tiết nhiệm vụ, quyền hạn và trách nhiệm của Kiểm sát viên trong tố tụng dân sự<|>9)##  
+("relationship"<|>ĐIỀU 59<|>KIỂM TRA VIÊN<|>Điều 59 quy định chi tiết nhiệm vụ, quyền hạn và trách nhiệm của Kiểm tra viên khi thực hiện hoạt động tố tụng<|>9)##  
+("relationship"<|>ĐIỀU 60<|>KIỂM SÁT VIÊN<|>Điều 60 quy định các trường hợp thay đổi, hoặc không được thay đổi Kiểm sát viên<|>8)##  
+("relationship"<|>ĐIỀU 60<|>KIỂM TRA VIÊN<|>Điều 60 quy định các trường hợp thay đổi, hoặc không được thay đổi Kiểm tra viên<|>8)##  
+("relationship"<|>ĐIỀU 52<|>KIỂM SÁT VIÊN<|>Điều 52 liệt kê các trường hợp mà Kiểm sát viên phải từ chối tiến hành tố tụng<|>7)##  
+("relationship"<|>ĐIỀU 52<|>KIỂM TRA VIÊN<|>Điều 52 liệt kê các trường hợp mà Kiểm tra viên phải từ chối tiến hành tố tụng<|>7)##  
+("relationship"<|>BỘ LUẬT<|>TÒA ÁN<|>Bộ luật quy định thẩm quyền và quyền hạn của Tòa án trong tố tụng dân sự<|>6)##  
+("relationship"<|>BỘ LUẬT<|>VIỆN KIỂM SÁT<|>Bộ luật quy định chức năng, nhiệm vụ của Viện kiểm sát trong hệ thống tư pháp<|>6)  
+
 <|COMPLETE|>
-#############################
-
-
-Example 3:
-
-entity_types: [citizen, government agency, local authority, economic organization, community group, land parcel, land right certificate, land use plan, statistical data, judicial body, investment project, legal instrument, public fund]
-text:
- chuyển quyền sử dụng đất.
-
-[clause] 6. Người đang có quyền sử dụng đất có đề xuất dự án đầu tư nếu thuộc trường hợp quy định tại Điều 79 của Luật này nhưng phù hợp với quy hoạch sử dụng đất và có đề nghị chuyển mục đích sử dụng đất mà được cơ quan nhà nước có thẩm quyền chấp thuận chủ trương đầu tư đồng thời chấp thuận nhà đầu tư theo quy định của pháp luật về đầu tư thì được sử dụng đất để thực hiện dự án đầu tư mà Nhà nước không thực hiện thu hồi đất theo quy định của Luật này.
-
-Trường hợp người đang có quyền sử dụng đất ở hoặc đất ở và đất khác có đề xuất dự án đầu tư nhà ở thương mại phù hợp với quy hoạch sử dụng đất, có đề nghị chuyển mục đích sử dụng đất mà được cơ quan nhà nước có thẩm quyền chấp thuận chủ trương đầu tư đồng thời chấp thuận nhà đầu tư theo quy định của pháp luật về đầu tư thì được sử dụng đất để thực hiện dự án.
-
-[clause] 7. Chính phủ quy định chi tiết Điều này.
-
-## Chương X. ĐĂNG KÝ ĐẤT ĐAI, CẤP GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT, QUYỀN SỞ HỮU TÀI SẢN GẮN LIỀN VỚI ĐẤT
-
-### Mục 1. HỒ SƠ ĐỊA CHÍNH
-
-#### Điều 128. Nguyên tắc lập, chỉnh lý, cập nhật hồ sơ địa chính
-
-[clause] 1. Hồ sơ địa chính được lập đến từng thửa đất, bảo đảm tính khoa học và thống nhất thông tin trong hồ sơ với hiện trạng quản lý, sử dụng đất; được tập hợp theo đơn vị hành chính cấp xã hoặc theo đơn vị hành chính cấp huyện nơi không thành lập đơn vị hành chính cấp xã.
-
-[clause] 2. Hồ sơ địa chính phải được chỉnh lý, cập nhật biến động đầy đủ, kịp thời khi người sử dụng đất thực hiện thủ tục hành chính về đất đai hoặc do yêu cầu của cơ quan nhà nước có thẩm quyền, bảo đảm phản ánh đầy đủ tình hình quản lý, sử dụng đất trên địa bàn.
-
-#### Điều 129. Hồ sơ địa chính
-
-[clause] 1. Hồ sơ địa chính bao gồm các tài liệu thể hiện thông tin chi tiết về từng thửa đất, người được giao quản lý đất, người sử dụng đất, chủ sở hữu tài sản gắn liền với đất, tình trạng pháp lý của thửa đất và tài sản gắn liền với đất
-------------------------
-output:
-("entity"<|>UY BAN NHAN DAN CAP TINH<|>local authority<|>Ủy ban nhân dân cấp tỉnh là cơ quan hành chính địa phương chịu trách nhiệm quản lý đất đai, quy định các điều kiện tối thiểu về diện tích, phê duyệt tách hoặc hợp thửa đất)##
-("entity"<|>TOA AN<|>judicial body<|>Tòa án là cơ quan tư pháp có thẩm quyền đưa ra bản án, quyết định phân chia quyền sử dụng đất trên thửa đất khi các điều kiện pháp luật không được đáp ứng)##
-("entity"<|>NGUOI SU DUNG DAT<|>citizen<|>Người sử dụng đất là công dân sở hữu và có quyền sử dụng đất, có thể đề xuất tách, hợp thửa hoặc chuyển mục đích sử dụng đất)##
-("entity"<|>THU VA DAT<|>land parcel<|>Thửa đất là đơn vị đất đai được ghi nhận trong hồ sơ địa chính, có thể tách, hợp thửa hoặc thay đổi mục đích sử dụng)##
-("entity"<|>QUY HOACH SU DUNG DAT<|>land use plan<|>Quy hoạch sử dụng đất là kế hoạch quy định mục đích, thời hạn và hình thức trả tiền thuê đất cho các thửa đất, là tiêu chuẩn để thực hiện tách, hợp thửa)##
-("entity"<|>LUAT DAT DAY<|>legal instrument<|>Luật Đất đai là văn bản pháp luật quy định nguyên tắc, điều kiện, thủ tục tách, hợp thửa, chuyển mục đích sử dụng đất và các quyền, nghĩa vụ của người dùng đất, cơ quan nhà nước và tòa án)##
-("relationship"<|>UY BAN NHAN DAN CAP TINH<|>THU VA DAT<|>Ủy ban nhân dân cấp tỉnh quy định các điều kiện tối thiểu về diện tích khi tách hoặc hợp thửa đất<|>9)##
-("relationship"<|>TOA AN<|>THU VA DAT<|>Tòa án quyết định phân chia quyền sử dụng đất trên thửa đất theo bản án, nếu không đáp ứng điều kiện không thực hiện tách thửa<|>8)##
-("relationship"<|>NGUOI SU DUNG DAT<|>UY BAN NHAN DAN CAP TINH<|>Người sử dụng đất phải nộp đề nghị và tuân thủ quyết định của Ủy ban nhân dân cấp tỉnh về giao, tách hoặc hợp thửa đất<|>7)##
-("relationship"<|>NGUOI SU DUNG DAT<|>THU VA DAT<|>Người sử dụng đất sở hữu và có quyền sử dụng thửa đất, có thể đề xuất tách hoặc hợp thửa<|>9)##
-("relationship"<|>QUY HOACH SU DUNG DAT<|>THU VA DAT<|>Quy hoạch sử dụng đất quy định mục đích sử dụng và yêu cầu các thửa đất hợp thửa phải cùng mục đích, thời hạn và hình thức trả tiền thuê<|>8)##
-("relationship"<|>UY BAN NHAN DAN CAP TINH<|>QUY HOACH SU DUNG DAT<|>Ủy ban nhân dân cấp tỉnh dựa trên quy hoạch sử dụng đất để phê duyệt hoặc từ chối tách, hợp thửa đất<|>7)##
-("relationship"<|>LUAT DAT DAY<|>UY BAN NHAN DAN CAP TINH<|>Luật Đất đai cung cấp cơ sở pháp lý cho Ủy ban nhân dân cấp tỉnh trong việc quản lý, tách và hợp thửa đất<|>9)##
-("relationship"<|>LUAT DAT DAY<|>TOA AN<|>Luật Đất đai quy định quyền và trách nhiệm của Tòa án trong việc phân chia quyền sử dụng đất<|>8)##
-("relationship"<|>LUAT DAT DAY<|>NGUOI SU DUNG DAT<|>Luật Đất đai quy định quyền và nghĩa vụ của người sử dụng đất trong việc đề xuất và thực hiện tách, hợp thửa, chuyển mục đích sử dụng đất<|>9)##
-("relationship"<|>LUAT DAT DAY<|>QUY HOACH SU DUNG DAT<|>Luật Đất đai đề cập đến việc lập và áp dụng quy hoạch sử dụng đất như một công cụ quản lý đất đai<|>7)##
-("relationship"<|>LUAT DAT DAY<|>THU VA DAT<|>Luật Đất đai quy định các nguyên tắc, điều kiện và thủ tục tách và hợp thỡ thửa đất<|>9)<|COMPLETE|>
 #############################
 
 
 
 -Real Data-
 ######################
-entity_types: [citizen, government agency, local authority, economic organization, community group, land parcel, land right certificate, land use plan, statistical data, judicial body, investment project, legal instrument, public fund]
+entity_types: [court, judge, prosecutor, inspector, arbitrator, legal_entity, individual, government_agency, insurance_entity, legal_document, mediation_officer, investigation_agency, witness, expert]
 text: {input_text}
 ######################
 output:

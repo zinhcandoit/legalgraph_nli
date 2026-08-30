@@ -56,6 +56,8 @@ class RerankerModel:
             return []
         try:
             scores = self.model.predict(pairs, batch_size=batch_size, show_progress_bar=False)
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
             return [float(s) for s in scores]
         except (RuntimeError, Exception) as e:
             msg = str(e).lower()
@@ -63,7 +65,7 @@ class RerankerModel:
                 logger.warning("CUDA OOM trong Reranker, tự động fallback sang CPU.")
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
-                scores = self._get_cpu_model().predict(pairs, batch_size=8, show_progress_bar=False)
+                scores = self._get_cpu_model().predict(pairs, batch_size=4, show_progress_bar=False)
                 return [float(s) for s in scores]
             raise e
 

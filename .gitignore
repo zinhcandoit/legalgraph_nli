@@ -9,6 +9,7 @@ wheels/
 
 # Virtual environments
 .venv
+.vscode
 
 # Frontend
 **/node_modules/

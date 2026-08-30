@@ -82,11 +82,11 @@ ollama run bge-m3
 - Bỏ các file tài liệu vào `db/input/`
 - (Tùy chọn) Tự động sinh Prompts cho lĩnh vực luật mới (Auto-Prompt Tuning):
 ```bash
-uv run python -m graphrag prompt-tune --root db --domain "your_domain" --selection-method random --language Vietnamese --output db/prompts
+uv run python --env-file .env -m graphrag prompt-tune --root db --domain "your_domain" --selection-method random --language Vietnamese --output db/prompts
 ```
 - Chạy pipeline indexing của Microsoft GraphRAG từ thư mục `db/`:
 ```bash
-uv run graphrag index --root db
+uv run python -m graphrag index --root db
 ```
 *Dữ liệu đồ thị sau khi trích xuất (entities, relationships, text units, community reports, lancedb vector index) sẽ được lưu tự động trong `db/graph_database/`.*
 - (Tuỳ chọn) Đồng bộ Knowledge Graph từ `db/graph_database/` lên Neo4j Database:
@@ -94,9 +94,6 @@ uv run graphrag index --root db
 uv run python be/src/RAGProvider/storage/vector_store.py
 ```
 *Ghi chú: Thêm cờ `--clear` nếu muốn xóa sạch dữ liệu cũ trong Neo4j trước khi import:*
-```bash
-uv run python be/src/RAGProvider/storage/vector_store.py --clear
-```
 ---
 
 ## IV. Khởi chạy hệ thống Microservices

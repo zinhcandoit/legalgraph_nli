@@ -18,6 +18,7 @@ class StorageConfig:
     graph_db_path: str = "db/graph_database"
     lancedb_path: str = "db/graph_database/lancedb"
     log_dir: str = "be/src/logs"
+    nli_dir: str = "bamibert_vilegalnli"
 
 
 @dataclass

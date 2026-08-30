@@ -20,15 +20,19 @@ if str(ROOT_DIR) not in sys.path:
 try:
     from be.src.config.config import config
     MODEL_NAME = config.models.nli
+    _NLI_DIR = config.storage.nli_dir
 except ImportError:
     try:
         from config.config import config
         MODEL_NAME = config.models.nli
+        _NLI_DIR = config.storage.nli_dir
     except ImportError:
         MODEL_NAME = "TQZinh/BamiBERT-ViLegalNLI"
+        _NLI_DIR = "bamibert_vilegalnli"
 
 # Thư mục lưu model cục bộ
-LOCAL_MODEL_DIR = CURRENT_DIR / "bamibert_vilegalnli"
+_nli_path = Path(_NLI_DIR)
+LOCAL_MODEL_DIR = _nli_path if _nli_path.is_absolute() else (CURRENT_DIR / _nli_path)
 
 # Định nghĩa nhãn kết quả
 LABEL_MAPPING = {

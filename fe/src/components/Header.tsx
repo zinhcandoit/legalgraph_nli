@@ -33,7 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
             {title}
           </h1>
           <span className="text-[10px] text-gray-400 hidden sm:inline">
-            Luật Đất Đai 2024 • Microsoft GraphRAG & BGE-M3
+            Tra cứu Pháp Luật • Microsoft GraphRAG & BGE-M3
           </span>
         </div>
       </div>

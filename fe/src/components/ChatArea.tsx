@@ -27,10 +27,10 @@ interface ChatAreaProps {
 }
 
 const SAMPLE_PROMPTS = [
-  'Hạn mức giao đất nông nghiệp cho cá nhân theo Luật Đất đai 2024 quy định như thế nào?',
-  'Điều kiện để hộ gia đình, cá nhân được cấp Giấy chứng nhận quyền sử dụng đất lần đầu?',
-  'Bảng giá đất theo Luật Đất đai 2024 được xây dựng định kỳ như thế nào và thay đổi gì so với trước?',
-  'Các trường hợp nhà nước thu hồi đất để phát triển kinh tế - xã hội vì lợi ích quốc gia, công cộng?',
+  'Quy định về thời giờ làm việc và nghỉ ngơi theo Bộ luật Lao động?',
+  'Điều kiện có hiệu lực của giao dịch dân sự theo Bộ luật Dân sự?',
+  'Các trường hợp loại trừ trách nhiệm hình sự theo Bộ luật Hình sự?',
+  'Hạn mức giao đất và cấp Giấy chứng nhận quyền sử dụng đất theo quy định pháp luật?',
 ];
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
@@ -65,7 +65,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           <Scale className="w-7 h-7" />
         </div>
         <h2 className="text-xl font-bold text-gray-100 mb-2">
-          Trợ lý AI Pháp Luật Đất Đai 2024
+          Trợ lý AI Pháp Luật
         </h2>
         <p className="text-gray-400 text-sm max-w-md mb-8">
           Hệ thống kết hợp <strong>GraphRAG</strong>, <strong>BGE-M3</strong>, <strong>Gemini</strong> và mô hình <strong>BamiBERT NLI</strong> để kiểm chứng tính xác thực logic của câu trả lời.
