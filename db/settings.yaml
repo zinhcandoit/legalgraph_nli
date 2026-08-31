@@ -14,7 +14,7 @@ completion_models:
     call_args:
       timeout: 360
     rate_limit:
-      requests_per_period: 30
+      requests_per_period: 38
       period_in_seconds: 60
     retry:
       type: exponential_backoff
@@ -31,7 +31,7 @@ embedding_models:
     retry:
       type: exponential_backoff
 
-concurrent_requests: 2
+concurrent_requests: 7
 
 ### Document processing settings ###
 

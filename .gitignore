@@ -16,6 +16,7 @@ wheels/
 
 # Logs
 **/logs/
+**/*.log
 
 # Model
 **/bamibert_vilegalnli/
