@@ -24,3 +24,6 @@ wheels/
 # Database
 **/graph_database/
 **/cache/
+
+# Report
+**/23127143.*

@@ -27,11 +27,10 @@ if str(ROOT_DIR) not in sys.path:
 NLI_SERVICE_URL = os.getenv("NLI_SERVICE_URL", "http://localhost:8001/predict")
 NLI_BATCH_URL = os.getenv("NLI_BATCH_URL", "http://localhost:8001/predict_batch")
 
-
-# Thống nhất 1 PROMPT_TEMPLATE chung là RAG_PROMPT_TEMPLATE cho cả RAG lẫn Direct LLM
 RAG_PROMPT_TEMPLATE = PromptTemplate.from_template(
     """Bạn là trợ lý luật thông minh.
 Dựa vào các căn cứ và điều khoản pháp luật được trích dẫn để trả lời câu hỏi sau cùng trích dẫn luật cụ thể.
+Lưu ý: Nếu trích dẫn luật bị bỏ trống hoặc không hỗ trợ việc trả lời câu hỏi. Hãy tự tin và CHỈ được trả về "Không có chứng cứ xác minh".
 TRÍCH DẪN LUẬT:
 {context}
 
