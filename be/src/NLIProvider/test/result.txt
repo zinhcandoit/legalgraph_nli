@@ -1,13 +1,13 @@
-============================================================
-                   COMPARISON SUMMARY
-============================================================
-                        Model  Accuracy  Precision  Recall  F1-Score  Macro F1
-        Base Model (BamiBERT)      0.50     0.5000  1.0000    0.6667    0.3333
-Fine-tuned Model (vilegalnli)      0.76     0.7349  0.8133    0.7722    0.7593
+=================================================================
+                    BẢNG TỔNG HỢP SO SÁNH
+=================================================================
+                                 Model  Accuracy  Precision  Recall  F1-Score  Macro F1
+                 Base Model (BamiBERT)      0.50     0.5000  1.0000    0.6667    0.3333
+Fine-tuned Model (BamiBERT-ViLegalNLI)      0.78     0.7625  0.8133    0.7871    0.7798
 
-------------------------------------------------------------
-Detailed Classification Report: Base Model
-------------------------------------------------------------
+-----------------------------------------------------------------
+Chi tiết Classification Report: Base Model
+-----------------------------------------------------------------
                     precision    recall  f1-score   support
 
 Non-entailment (0)       0.00      0.00      0.00        75
@@ -17,16 +17,14 @@ Non-entailment (0)       0.00      0.00      0.00        75
          macro avg       0.25      0.50      0.33       150
       weighted avg       0.25      0.50      0.33       150
 
-------------------------------------------------------------
-Detailed Classification Report: Fine-tuned Model
-------------------------------------------------------------
+-----------------------------------------------------------------
+Chi tiết Classification Report: Fine-tuned Model
+-----------------------------------------------------------------
                     precision    recall  f1-score   support
 
-Non-entailment (0)       0.79      0.71      0.75        75
-    Entailment (1)       0.73      0.81      0.77        75
+Non-entailment (0)       0.80      0.75      0.77        75
+    Entailment (1)       0.76      0.81      0.79        75
 
-          accuracy                           0.76       150
-         macro avg       0.76      0.76      0.76       150
-      weighted avg       0.76      0.76      0.76       150
-
-      
+          accuracy                           0.78       150
+         macro avg       0.78      0.78      0.78       150
+      weighted avg       0.78      0.78      0.78       150

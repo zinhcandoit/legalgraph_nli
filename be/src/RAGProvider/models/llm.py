@@ -39,7 +39,7 @@ try:
 except Exception:
     DEFAULT_MODEL = "gemma-4-26b-a4b-it"
     DEFAULT_TEMPERATURE = 0.0
-    DEFAULT_MAX_TOKENS = 4096
+    DEFAULT_MAX_TOKENS = 2048
 
 
 def extract_content_text(response: Any) -> str:

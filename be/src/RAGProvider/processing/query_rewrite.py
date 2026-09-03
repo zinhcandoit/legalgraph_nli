@@ -4,14 +4,10 @@ from ..logger import logger
 from ..models.llm import get_llm
 
 REWRITE_PROMPT_TEMPLATE = PromptTemplate.from_template(
-    """Bạn là chuyên gia tra cứu thông tin pháp luật Việt Nam.
-Hãy phân tích câu hỏi người dùng và viết lại thành 1 câu truy vấn ngắn gọn, chuẩn xác thuật ngữ Luật Đất đai 2024 để tra cứu trong cơ sở dữ liệu.
-
-Quy tắc:
-1. Giữ nguyên ý nghĩa cốt lõi của câu hỏi.
-2. CHỈ TRẢ VỀ DUY NHẤT 1 CÂU TRUY VẤN VIẾT LẠI, KHÔNG GIẢI THÍCH, KHÔNG THÊM BẤT KỲ LỜI DẪN NÀO.
-
-Câu hỏi gốc: {query}
+    """Hãy viết lại câu hỏi sau thành câu truy vấn luật Việt Nam.
+Câu hỏi:
+{query}
+Chỉ trả về câu truy vấn luật viết lại, không giải thích gì thêm.
 Câu truy vấn viết lại:"""
 )
 

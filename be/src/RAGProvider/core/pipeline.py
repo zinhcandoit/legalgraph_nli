@@ -26,17 +26,20 @@ if str(ROOT_DIR) not in sys.path:
 NLI_SERVICE_URL = os.getenv("NLI_SERVICE_URL", "http://localhost:8001/predict")
 
 
-DIRECT_PROMPT_TEMPLATE = PromptTemplate.from_template("Bạn là luật sư. Hãy trả lời câu hỏi sau: {query}")
+DIRECT_PROMPT_TEMPLATE = PromptTemplate.from_template("""
+Bạn là trợ lý luật thông minh. Hãy trả lời trực tiếp câu hỏi sau: 
+{query}
+Chỉ ghi ra câu trả lời. Không giải thích gì thêm.
+Câu trả lời:
+""")
 
 RAG_PROMPT_TEMPLATE = PromptTemplate.from_template(
-    """Bạn là chuyên gia trợ lý pháp lý thông minh.
-Hãy dựa vào các căn cứ và điều khoản pháp luật được trích dẫn dưới đây để trả lời câu hỏi chính xác và trích dẫn điều khoản cụ thể.
-Nếu các trích đoạn dưới đây không chứa thông tin trả lời, hãy tự tin trả lời là "Không có chứng cứ xác minh".
-
-CĂN CỨ VÀ NGỮ CẢNH PHÁP LÝ:
+    """Bạn là trợ lý luật thông minh.
+Dựa vào các căn cứ và điều khoản pháp luật được trích dẫn để trả lời câu hỏi sau cùng trích dẫn luật cụ thể.
+TRÍCH DẪN LUẬT:
 {context}
 
-CÂU HỎI CỦA NGƯỜI DÙNG:
+CÂU HỎI:
 {query}
 
 CÂU TRẢ LỜI:"""

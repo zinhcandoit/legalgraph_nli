@@ -1,8 +1,5 @@
 # VietLegal AI - Hệ thống RAG & NLI Luật Tiếng Việt
 
-**Lưu ý**: Hiện tại GraphDB đang tối ưu cho **Luật Đất Đai** nên cần chỉnh lại nếu muốn tối ưu cho các luật khác. Chi tiết trong phần **III.2.**.
----
-
 ## I. Cấu trúc thư mục dự án
 
 ```text
