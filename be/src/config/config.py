@@ -9,7 +9,7 @@ class ModelConfig:
     gemini: str = "gemma-4-26b-a4b-it"
     nli: str = "TQZinh/BamiBERT-ViLegalNLI"
     device: Optional[str] = "cuda"
-    max_new_tokens: int = 2048
+    max_new_tokens: int = 4096
     temperature: float = 0.0
 
 

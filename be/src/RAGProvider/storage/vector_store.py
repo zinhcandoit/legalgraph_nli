@@ -20,6 +20,9 @@ from be.src.RAGProvider.logger import logger
 load_dotenv(ROOT_DIR / ".env")
 
 
+from tqdm import tqdm
+
+
 def sanitize_list(val: Any) -> List[str]:
     """Chuyển numpy array hoặc list thành python list strings an toàn cho Neo4j."""
     if val is None or (isinstance(val, float) and np.isnan(val)):
@@ -66,6 +69,25 @@ class Neo4jGraphStore:
             from be.src.RAGProvider.models.embedding import EmbeddingModel
             self.embedding_model = EmbeddingModel()
         return self.embedding_model
+
+    def _get_lancedb_vectors(self, table_name: str, graph_dir: Path) -> Dict[str, List[float]]:
+        """Đọc trước vector embeddings đã được tính sẵn trong LanceDB để tiết kiệm thời gian."""
+        lancedb_dir = graph_dir / "lancedb"
+        if not lancedb_dir.exists():
+            return {}
+        try:
+            import lancedb
+            db = lancedb.connect(str(lancedb_dir))
+            table_names = db.table_names() if hasattr(db, "table_names") else db.list_tables()
+            if table_name in table_names:
+                tbl = db.open_table(table_name)
+                df = tbl.to_pandas()
+                if "id" in df.columns and "vector" in df.columns:
+                    logger.info(f"Tìm thấy {len(df)} vector có sẵn trong LanceDB table '{table_name}'. Tái sử dụng ngay.")
+                    return {str(r["id"]): [float(v) for v in r["vector"]] for _, r in df.iterrows()}
+        except Exception as e:
+            logger.warning(f"Không thể đọc vector từ LanceDB ({table_name}): {e}")
+        return {}
 
     def close(self):
         if self.driver:
@@ -129,28 +151,53 @@ class Neo4jGraphStore:
             session.run("MATCH (n) DETACH DELETE n")
         logger.info("Đã dọn dẹp sạch Neo4j Database.")
 
-    def import_text_units(self, parquet_path: Path, batch_size: int = 50):
+    def import_text_units(self, parquet_path: Path, batch_size: int = 200):
         """Import TextUnits từ text_units.parquet vào node (:TextUnit) kèm Dense Vector Embeddings."""
         if not parquet_path.exists():
             logger.warning(f"Không tìm thấy file {parquet_path}")
             return
 
         df = pd.read_parquet(parquet_path)
-        logger.info(f"Bắt đầu tính toán embeddings và import {len(df)} TextUnits...")
+        logger.info(f"Bắt đầu nạp {len(df)} TextUnits...")
 
-        emb_model = self._get_embedding_model()
-        texts = [str(row.get("text", "")) for _, row in df.iterrows()]
-        vectors = emb_model.embed_documents(texts)
+        lancedb_vectors = self._get_lancedb_vectors("text_unit_text", parquet_path.parent)
+
+        missing_indices = []
+        for idx, row in df.iterrows():
+            cid = str(row["id"])
+            if cid not in lancedb_vectors:
+                missing_indices.append(idx)
+
+        computed_vectors = {}
+        if missing_indices:
+            logger.info(
+                f"Tái sử dụng {len(df) - len(missing_indices)} vector từ LanceDB. Cần tính mới {len(missing_indices)} items..."
+            )
+            emb_model = self._get_embedding_model()
+            missing_texts = [str(df.loc[idx].get("text", "")) for idx in missing_indices]
+            chunk_size = 32
+            for i in tqdm(range(0, len(missing_texts), chunk_size), desc="Calculating Missing Embeddings"):
+                sub_texts = missing_texts[i : i + chunk_size]
+                sub_vecs = emb_model.embed_documents(sub_texts)
+                for j, v in enumerate(sub_vecs):
+                    orig_idx = missing_indices[i + j]
+                    computed_vectors[str(df.loc[orig_idx]["id"])] = [float(val) for val in v]
+        else:
+            logger.info(f"Toàn bộ {len(df)} TextUnits đã có sẵn vector từ LanceDB. Bỏ qua bước tính toán!")
 
         records = []
-        for idx, (_, row) in enumerate(df.iterrows()):
+        for _, row in df.iterrows():
+            cid = str(row["id"])
+            vec = lancedb_vectors.get(cid) or computed_vectors.get(cid)
+            if vec is None:
+                vec = [0.0] * 1024
             records.append({
-                "id": str(row["id"]),
+                "id": cid,
                 "human_readable_id": int(row.get("human_readable_id", 0)),
                 "text": str(row.get("text", "")),
                 "n_tokens": int(row.get("n_tokens", 0)),
                 "document_id": str(row.get("document_id", "")),
-                "embedding": [float(v) for v in vectors[idx]],
+                "embedding": vec,
             })
 
         query = """
@@ -164,7 +211,7 @@ class Neo4jGraphStore:
         """
 
         with self.driver.session(database=self.database) as session:
-            for i in range(0, len(records), batch_size):
+            for i in tqdm(range(0, len(records), batch_size), desc="Importing TextUnits to Neo4j"):
                 batch = records[i : i + batch_size]
                 session.run(query, batch=batch)
         logger.info(f"Đã import thành công {len(records)} TextUnits (kèm vector embeddings) vào Neo4j.")
@@ -214,7 +261,7 @@ class Neo4jGraphStore:
         """
 
         with self.driver.session(database=self.database) as session:
-            for i in range(0, len(records), batch_size):
+            for i in tqdm(range(0, len(records), batch_size), desc="Importing Entities to Neo4j"):
                 batch = records[i : i + batch_size]
                 session.run(node_query, batch=batch)
                 session.run(rel_query, batch=batch)
@@ -256,13 +303,13 @@ class Neo4jGraphStore:
         """
 
         with self.driver.session(database=self.database) as session:
-            for i in range(0, len(records), batch_size):
+            for i in tqdm(range(0, len(records), batch_size), desc="Importing Relationships to Neo4j"):
                 batch = records[i : i + batch_size]
                 session.run(query, batch=batch)
 
         logger.info(f"Đã import thành công {len(records)} Relationships giữa các Entity.")
 
-    def import_community_reports(self, parquet_path: Path, batch_size: int = 50):
+    def import_community_reports(self, parquet_path: Path, batch_size: int = 200):
         """Import Community Reports từ community_reports.parquet vào node (:CommunityReport) kèm Embeddings."""
         if not parquet_path.exists():
             logger.warning(f"Không tìm thấy file {parquet_path}")
@@ -271,14 +318,42 @@ class Neo4jGraphStore:
         df = pd.read_parquet(parquet_path)
         logger.info(f"Bắt đầu import {len(df)} Community Reports...")
 
-        emb_model = self._get_embedding_model()
-        comm_texts = [f"{str(r.get('title', ''))}: {str(r.get('summary', ''))}" for _, r in df.iterrows()]
-        vectors = emb_model.embed_documents(comm_texts)
+        lancedb_vectors = self._get_lancedb_vectors("community_full_content", parquet_path.parent)
+
+        missing_indices = []
+        for idx, row in df.iterrows():
+            cid = str(row["id"])
+            if cid not in lancedb_vectors:
+                missing_indices.append(idx)
+
+        computed_vectors = {}
+        if missing_indices:
+            logger.info(
+                f"Tái sử dụng {len(df) - len(missing_indices)} vector từ LanceDB. Cần tính mới {len(missing_indices)} items..."
+            )
+            emb_model = self._get_embedding_model()
+            missing_texts = [
+                f"{str(df.loc[idx].get('title', ''))}: {str(df.loc[idx].get('summary', ''))}"
+                for idx in missing_indices
+            ]
+            chunk_size = 32
+            for i in tqdm(range(0, len(missing_texts), chunk_size), desc="Calculating Missing Comm Embeddings"):
+                sub_texts = missing_texts[i : i + chunk_size]
+                sub_vecs = emb_model.embed_documents(sub_texts)
+                for j, v in enumerate(sub_vecs):
+                    orig_idx = missing_indices[i + j]
+                    computed_vectors[str(df.loc[orig_idx]["id"])] = [float(val) for val in v]
+        else:
+            logger.info(f"Toàn bộ {len(df)} Community Reports đã có sẵn vector từ LanceDB. Bỏ qua bước tính toán!")
 
         records = []
-        for idx, (_, row) in enumerate(df.iterrows()):
+        for _, row in df.iterrows():
+            cid = str(row["id"])
+            vec = lancedb_vectors.get(cid) or computed_vectors.get(cid)
+            if vec is None:
+                vec = [0.0] * 1024
             records.append({
-                "id": str(row["id"]),
+                "id": cid,
                 "human_readable_id": int(row.get("human_readable_id", 0)),
                 "community": int(row.get("community", 0)),
                 "level": int(row.get("level", 0)),
@@ -288,7 +363,7 @@ class Neo4jGraphStore:
                 "full_content": str(row.get("full_content", "")),
                 "rank": float(row.get("rank", 0.0)),
                 "rating_explanation": str(row.get("rating_explanation", "")),
-                "embedding": [float(v) for v in vectors[idx]],
+                "embedding": vec,
             })
 
         query = """
@@ -307,7 +382,7 @@ class Neo4jGraphStore:
         """
 
         with self.driver.session(database=self.database) as session:
-            for i in range(0, len(records), batch_size):
+            for i in tqdm(range(0, len(records), batch_size), desc="Importing Community Reports to Neo4j"):
                 batch = records[i : i + batch_size]
                 session.run(query, batch=batch)
 
