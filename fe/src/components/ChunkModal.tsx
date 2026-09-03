@@ -47,6 +47,35 @@ export const ChunkModal: React.FC<ChunkModalProps> = ({ chunk, onClose }) => {
             )}
           </div>
 
+          {chunk.nli_verification && (
+            <div
+              className={`p-3 rounded-xl border text-xs ${
+                chunk.nli_verification.is_valid
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+              }`}
+            >
+              <div className="flex items-center justify-between font-semibold mb-1">
+                <span className="flex items-center gap-1.5">
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      chunk.nli_verification.is_valid ? 'bg-emerald-400' : 'bg-amber-400'
+                    }`}
+                  />
+                  Đánh giá NLI: {chunk.nli_verification.label}
+                </span>
+                <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-black/40 border border-borderDark/60">
+                  Độ tin cậy: {(chunk.nli_verification.confidence * 100).toFixed(1)}%
+                </span>
+              </div>
+              {chunk.nli_verification.note && (
+                <p className="text-gray-300 text-[11px] mt-1.5 leading-relaxed">
+                  {chunk.nli_verification.note}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="p-4 rounded-xl bg-chatBg border border-borderDark/80 text-gray-200 whitespace-pre-wrap leading-relaxed">
             {chunk.text}
           </div>

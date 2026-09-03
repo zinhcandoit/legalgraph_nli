@@ -12,6 +12,7 @@ export interface RetrievedChunk {
   score?: number;
   source_type?: string;
   metadata?: Record<string, any>;
+  nli_verification?: NLIVerification;
 }
 
 export interface Message {

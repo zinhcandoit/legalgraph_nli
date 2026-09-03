@@ -22,8 +22,13 @@ export const App: React.FC = () => {
   } = useChatStorage();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingSessionIds, setLoadingSessionIds] = useState<Record<string, boolean>>({});
   const [serverOnline, setServerOnline] = useState(true);
+
+  // Trạng thái loading chỉ tính riêng cho session đang mở hiện tại
+  const isCurrentSessionLoading = Boolean(
+    currentSession?.id && loadingSessionIds[currentSession.id]
+  );
 
   // Check health periodically
   useEffect(() => {
@@ -39,6 +44,9 @@ export const App: React.FC = () => {
   const handleSendMessage = async (queryText: string) => {
     if (!currentSession) return;
 
+    const targetSessionId = currentSession.id;
+    const targetRAGEnabled = currentSession.rag_enabled;
+
     const userMessage: Message = {
       id: 'msg_' + Date.now(),
       role: 'user',
@@ -46,15 +54,15 @@ export const App: React.FC = () => {
       timestamp: new Date().toISOString(),
     };
 
-    addMessage(currentSession.id, userMessage);
-    setIsLoading(true);
+    addMessage(targetSessionId, userMessage);
+    setLoadingSessionIds((prev) => ({ ...prev, [targetSessionId]: true }));
 
     try {
       const res = await sendRAGQuery(
         queryText,
-        currentSession.rag_enabled,
+        targetRAGEnabled,
         undefined,
-        currentSession.id
+        targetSessionId
       );
 
       const assistantMessage: Message = {
@@ -71,18 +79,22 @@ export const App: React.FC = () => {
         input_sha256: res.input_sha256,
       };
 
-      addMessage(currentSession.id, assistantMessage);
+      addMessage(targetSessionId, assistantMessage);
     } catch (error: any) {
       const errorMessage: Message = {
         id: 'err_' + Date.now(),
         role: 'assistant',
         content: `⚠️ Không thể kết nối tới máy chủ RAG: ${error.message || error}. Hãy đảm bảo backend FastAPI đang chạy trên cổng 8002.`,
         timestamp: new Date().toISOString(),
-        rag_used: currentSession.rag_enabled,
+        rag_used: targetRAGEnabled,
       };
-      addMessage(currentSession.id, errorMessage);
+      addMessage(targetSessionId, errorMessage);
     } finally {
-      setIsLoading(false);
+      setLoadingSessionIds((prev) => {
+        const next = { ...prev };
+        delete next[targetSessionId];
+        return next;
+      });
     }
   };
 
@@ -100,6 +112,7 @@ export const App: React.FC = () => {
         activeSessionId={activeSessionId}
         isOpen={isSidebarOpen}
         serverOnline={serverOnline}
+        loadingSessionIds={loadingSessionIds}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onSelectSession={setActiveSessionId}
         onCreateSession={() => createSession(true)}
@@ -112,7 +125,7 @@ export const App: React.FC = () => {
         <Header
           title={currentSession?.title || 'Đoạn chat mới'}
           ragEnabled={currentSession?.rag_enabled ?? true}
-          isLoading={isLoading}
+          isLoading={isCurrentSessionLoading}
           onToggleRAG={handleToggleRAG}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onClearChat={clearCurrentMessages}
@@ -120,13 +133,13 @@ export const App: React.FC = () => {
 
         <ChatArea
           messages={currentSession?.messages || []}
-          isLoading={isLoading}
+          isLoading={isCurrentSessionLoading}
           ragEnabled={currentSession?.rag_enabled ?? true}
           onSendSuggestion={handleSendMessage}
         />
 
         <ChatInput
-          isLoading={isLoading}
+          isLoading={isCurrentSessionLoading}
           ragEnabled={currentSession?.rag_enabled ?? true}
           onSendMessage={handleSendMessage}
           onToggleRAG={handleToggleRAG}

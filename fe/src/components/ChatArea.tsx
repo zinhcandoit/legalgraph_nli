@@ -220,13 +220,28 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                           onClick={() => setSelectedChunk(chunk)}
                           className="p-2.5 rounded-lg bg-chatBg hover:bg-hoverBg border border-borderDark/70 cursor-pointer text-xs transition-colors"
                         >
-                          <div className="flex items-center justify-between text-[11px] text-gray-400 mb-1">
-                            <span className="font-semibold text-gray-300">
-                              Trích đoạn #{cIdx + 1} ({chunk.source_type})
+                          <div className="flex items-center justify-between text-[11px] text-gray-400 mb-1 gap-2 flex-wrap">
+                            <span className="font-semibold text-gray-300 flex items-center gap-1.5">
+                              <span>Trích đoạn #{cIdx + 1}</span>
+                              <span className="text-gray-500 font-normal">({chunk.source_type || 'text_unit'})</span>
                             </span>
-                            {chunk.score !== undefined && (
-                              <span className="text-emerald-400">Score: {chunk.score.toFixed(3)}</span>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {chunk.nli_verification && (
+                                <span
+                                  className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                                    chunk.nli_verification.is_valid
+                                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                      : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                                  }`}
+                                  title={`NLI: ${chunk.nli_verification.label} (${(chunk.nli_verification.confidence * 100).toFixed(1)}%) - ${chunk.nli_verification.note || ''}`}
+                                >
+                                  {chunk.nli_verification.is_valid ? '✓ NLI: Hợp lệ' : '✗ NLI: Cảnh báo'} ({(chunk.nli_verification.confidence * 100).toFixed(0)}%)
+                                </span>
+                              )}
+                              {chunk.score !== undefined && (
+                                <span className="text-emerald-400">Score: {chunk.score.toFixed(3)}</span>
+                              )}
+                            </div>
                           </div>
                           <p className="text-gray-300 line-clamp-2 italic">
                             "{chunk.text}"

@@ -34,8 +34,12 @@ class RetrievedChunk(BaseModel):
     id: Optional[str] = Field(default=None, description="ID của chunk / node")
     text: str = Field(..., description="Nội dung trích đoạn pháp lý")
     score: Optional[float] = Field(default=None, description="Điểm số liên quan từ Reranker")
-    source_type: Optional[str] = Field(default="text_unit", description="Nguồn (text_unit / entity / community / neo4j)")
+    source_type: Optional[str] = Field(default="text_unit", description="Nguồn (text_unit / entity / community / neo4j / hyde_law)")
     metadata: Optional[Dict[str, Any]] = Field(default=None, description="Metadata bổ sung")
+    nli_verification: Optional[NLIVerificationResult] = Field(
+        default=None,
+        description="Kết quả kiểm định NLI giữa câu hỏi và đoạn trích dẫn này",
+    )
 
 
 class RAGResponse(BaseModel):

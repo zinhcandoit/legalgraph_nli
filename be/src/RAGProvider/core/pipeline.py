@@ -15,6 +15,7 @@ from ..logger import logger
 from ..models.embedding import EmbeddingModel
 from ..models.llm import GeminiModel, get_llm
 from ..models.reranker import RerankerModel
+from ..processing.hyde import generate_hypothetical_law
 from ..processing.query_rewrite import rewrite_query
 from ..retrieval.graph_retriever import GraphRetriever
 from ..schemas import NLIVerificationResult, RetrievedChunk, compute_sha256
@@ -24,15 +25,10 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 NLI_SERVICE_URL = os.getenv("NLI_SERVICE_URL", "http://localhost:8001/predict")
+NLI_BATCH_URL = os.getenv("NLI_BATCH_URL", "http://localhost:8001/predict_batch")
 
 
-DIRECT_PROMPT_TEMPLATE = PromptTemplate.from_template("""
-Bạn là trợ lý luật thông minh. Hãy trả lời trực tiếp câu hỏi sau: 
-{query}
-Chỉ ghi ra câu trả lời. Không giải thích gì thêm.
-Câu trả lời:
-""")
-
+# Thống nhất 1 PROMPT_TEMPLATE chung là RAG_PROMPT_TEMPLATE cho cả RAG lẫn Direct LLM
 RAG_PROMPT_TEMPLATE = PromptTemplate.from_template(
     """Bạn là trợ lý luật thông minh.
 Dựa vào các căn cứ và điều khoản pháp luật được trích dẫn để trả lời câu hỏi sau cùng trích dẫn luật cụ thể.
@@ -56,11 +52,22 @@ class RAGPipeline:
         self.llm = self.llm_model.get()
         self.output_parser = StrOutputParser()
 
-        # Chuỗi LangChain LCEL chuẩn
-        self.direct_chain = DIRECT_PROMPT_TEMPLATE | self.llm | self.output_parser
+        # Chuỗi LangChain LCEL: max_tokens x 2 khi không sử dụng RAG (Direct LLM)
+        base_max_tokens = getattr(self.llm_model, "max_output_tokens", None) or getattr(config.models, "max_new_tokens", 2048)
+        direct_max_tokens = base_max_tokens * 2
+        self.direct_llm_model = GeminiModel(
+            model=self.llm_model.model_name,
+            temperature=self.llm_model.temperature,
+            max_output_tokens=direct_max_tokens,
+            api_key=self.llm_model.api_key,
+        )
+        self.direct_llm = self.direct_llm_model.get()
+
+        # Thống nhất 1 RAG_PROMPT_TEMPLATE cho cả Direct LLM lẫn RAG
+        self.direct_chain = RAG_PROMPT_TEMPLATE | self.direct_llm | self.output_parser
         self.rag_chain = RAG_PROMPT_TEMPLATE | self.llm | self.output_parser
 
-        logger.info("✅ LangChain RAG Pipeline đã sẵn sàng phục vụ!")
+        logger.info(f"✅ LangChain RAG Pipeline đã sẵn sàng phục vụ! (Direct max_tokens={direct_max_tokens}, RAG max_tokens={base_max_tokens})")
 
     def _format_docs_for_context(self, chunks: List[RetrievedChunk]) -> str:
         if not chunks:
@@ -70,47 +77,98 @@ class RAGPipeline:
             blocks.append(f"[Trích đoạn {i} ({chunk.source_type})]:\n{chunk.text}")
         return "\n\n".join(blocks)
 
-    def _verify_nli(self, query: str, answer: str) -> Optional[NLIVerificationResult]:
-        if not answer or not answer.strip() or not query or not query.strip():
-            return None
+    def _verify_chunks_nli(self, query: str, chunks: List[RetrievedChunk]) -> tuple[List[RetrievedChunk], Optional[NLIVerificationResult]]:
+        """Kiểm chứng logic NLI trực tiếp đối với các retrieved chunks."""
+        if not chunks or not query or not query.strip():
+            return chunks, None
 
         clean_query = query.strip()
-        clean_ans = answer.strip()
+        items_payload = [
+            {"specific_question": clean_query, "legal_document": chunk.text, "id": str(idx)}
+            for idx, chunk in enumerate(chunks)
+        ]
 
+        predictions_map: Dict[int, Any] = {}
+        # 1. Ưu tiên gọi batch predict
         try:
-            with httpx.Client(timeout=8.0) as client:
-                res = client.post(
-                    NLI_SERVICE_URL,
-                    json={
-                        "specific_question": clean_query,
-                        "legal_document": clean_ans,
-                    },
-                )
+            with httpx.Client(timeout=10.0) as client:
+                res = client.post(NLI_BATCH_URL, json={"items": items_payload})
                 if res.status_code == 200:
                     data = res.json()
-                    pred = data.get("prediction", {})
-                    label_id = pred.get("label_id", 0)
-                    label = pred.get("label", "UNKNOWN")
-                    confidence = float(pred.get("confidence", 0.0))
-                    probs = pred.get("probabilities", {})
-
-                    is_valid = (label_id == 1 or "ENTAILMENT" in label.upper() or "WIN" in label.upper())
-                    note = (
-                        "Đánh giá NLI: Hợp lệ (Entailment/Win)."
-                        if is_valid
-                        else "Cảnh báo NLI: Mâu thuẫn/Không thỏa mãn (Contradiction/Lose)."
-                    )
-                    return NLIVerificationResult(
-                        is_valid=is_valid,
-                        label=label,
-                        confidence=confidence,
-                        probabilities=probs,
-                        note=note,
-                    )
+                    preds = data.get("predictions", [])
+                    for i, pred in enumerate(preds):
+                        predictions_map[i] = pred
         except Exception as e:
-            logger.warning(f"Lỗi kết nối NLI Service: {e}")
+            logger.warning(f"Lỗi batch NLI ({e}), chuyển sang fallback gọi đơn lẻ...")
 
-        return None
+        # 2. Fallback gọi đơn lẻ nếu batch không phản hồi
+        if not predictions_map:
+            try:
+                with httpx.Client(timeout=6.0) as client:
+                    for idx, chunk in enumerate(chunks):
+                        res = client.post(
+                            NLI_SERVICE_URL,
+                            json={"specific_question": clean_query, "legal_document": chunk.text},
+                        )
+                        if res.status_code == 200:
+                            predictions_map[idx] = res.json().get("prediction", {})
+            except Exception as e:
+                logger.warning(f"Lỗi kết nối NLI Service: {e}")
+
+        # Gán nhãn NLI cho từng retrieved chunk
+        valid_count = 0
+        for idx, chunk in enumerate(chunks):
+            pred = predictions_map.get(idx)
+            if pred:
+                label_id = pred.get("label_id", 0)
+                label = pred.get("label", "UNKNOWN")
+                confidence = float(pred.get("confidence", 0.0))
+                probs = pred.get("probabilities", {})
+
+                is_valid = (label_id == 1 or "ENTAILMENT" in label.upper() or "WIN" in label.upper())
+                if is_valid:
+                    valid_count += 1
+
+                note = (
+                    f"Trích đoạn #{idx + 1}: Hợp lệ (Entailment/Win)."
+                    if is_valid
+                    else f"Trích đoạn #{idx + 1}: Mâu thuẫn/Không đủ căn cứ (Contradiction/Lose)."
+                )
+                chunk.nli_verification = NLIVerificationResult(
+                    is_valid=is_valid,
+                    label=label,
+                    confidence=confidence,
+                    probabilities=probs,
+                    note=note,
+                )
+
+        if not predictions_map:
+            return chunks, None
+
+        # Tổng hợp kết quả NLI chung
+        overall_is_valid = valid_count > 0
+        if overall_is_valid:
+            valid_confs = [c.nli_verification.confidence for c in chunks if c.nli_verification and c.nli_verification.is_valid]
+            avg_conf = round(sum(valid_confs) / len(valid_confs), 4) if valid_confs else 0.0
+            overall_nli = NLIVerificationResult(
+                is_valid=True,
+                label=f"ENTAILMENT/WIN ({valid_count}/{len(chunks)})",
+                confidence=avg_conf,
+                probabilities={"ENTAILMENT/WIN": avg_conf, "CONTRADICTION/LOSE": round(1.0 - avg_conf, 4)},
+                note=f"Đánh giá NLI: Có {valid_count}/{len(chunks)} trích đoạn pháp lý được xác thực hợp lệ (Entailment).",
+            )
+        else:
+            confs = [c.nli_verification.confidence for c in chunks if c.nli_verification]
+            max_conf = round(max(confs), 4) if confs else 0.0
+            overall_nli = NLIVerificationResult(
+                is_valid=False,
+                label=f"CONTRADICTION/LOSE (0/{len(chunks)})",
+                confidence=max_conf,
+                probabilities={"CONTRADICTION/LOSE": max_conf, "ENTAILMENT/WIN": round(1.0 - max_conf, 4)},
+                note=f"Cảnh báo NLI: Toàn bộ {len(chunks)} trích đoạn pháp lý không thỏa mãn căn cứ xác thực câu hỏi (Contradiction).",
+            )
+
+        return chunks, overall_nli
 
     def run(
         self,
@@ -128,16 +186,31 @@ class RAGPipeline:
         rewritten_query = None
         retrieved_chunks: List[RetrievedChunk] = []
 
-        # 1. w/o RAG: Direct LLM -> NLI Verification (Hypothesis: Answer, Premise: Query)
+        # 1. w/o RAG: Tự sinh điều luật qua HyDE -> Context -> RAG_PROMPT_TEMPLATE -> NLI trên chunk
         if not rag:
+            hyde_law = generate_hypothetical_law(query=query_clean, llm=self.direct_llm_model)
+            if not hyde_law:
+                hyde_law = "Không có điều luật trích dẫn bổ sung."
+
+            retrieved_chunks = [
+                RetrievedChunk(
+                    id="hyde-direct-0",
+                    text=hyde_law,
+                    score=1.0,
+                    source_type="hyde_law",
+                    metadata={"source": "Direct LLM HyDE", "type": "hypothetical_law"},
+                )
+            ]
+
+            context_str = self._format_docs_for_context(retrieved_chunks)
             try:
-                answer = str(self.direct_chain.invoke({"query": query_clean})).strip()
+                answer = str(self.direct_chain.invoke({"context": context_str, "query": query_clean})).strip()
             except Exception as e:
                 logger.error(f"Lỗi Direct LLM: {e}")
                 answer = f"Lỗi tạo câu trả lời: {str(e)}"
 
-            # NLI kiểm chứng: 2 input (Hypothesis: answer, Premise: query)
-            nli_verification = self._verify_nli(query=query_clean, answer=answer)
+            # NLI kiểm chứng các retrieved chunks (ở đây là hyde_law)
+            retrieved_chunks, nli_verification = self._verify_chunks_nli(query=query_clean, chunks=retrieved_chunks)
             latency_ms = round((time.perf_counter() - start_time) * 1000, 2)
             return {
                 "request_id": request_id,
@@ -145,11 +218,11 @@ class RAGPipeline:
                 "query": query_clean,
                 "rewritten_query": None,
                 "rag_used": False,
-                "retrieval_mode": None,
+                "retrieval_mode": "direct_hyde",
                 "answer": answer,
                 "nli_verification": nli_verification,
-                "retrieved_chunks": [],
-                "total_chunks": 0,
+                "retrieved_chunks": retrieved_chunks,
+                "total_chunks": len(retrieved_chunks),
                 "latency_ms": latency_ms,
                 "input_sha256": input_sha256,
                 "session_id": session_id,
@@ -190,7 +263,8 @@ class RAGPipeline:
             logger.error(f"Lỗi RAG Generation: {e}")
             answer = f"Lỗi tạo câu trả lời tổng hợp: {str(e)}"
 
-        nli_verification = self._verify_nli(query=query_clean, answer=answer)
+        # NLI kiểm chứng đối với các retrieved chunks
+        retrieved_chunks, nli_verification = self._verify_chunks_nli(query=query_clean, chunks=retrieved_chunks)
         latency_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
         return {

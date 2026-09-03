@@ -17,6 +17,7 @@ interface SidebarProps {
   activeSessionId: string;
   isOpen: boolean;
   serverOnline: boolean;
+  loadingSessionIds?: Record<string, boolean>;
   onToggleSidebar: () => void;
   onSelectSession: (id: string) => void;
   onCreateSession: () => void;
@@ -29,6 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeSessionId,
   isOpen,
   serverOnline,
+  loadingSessionIds = {},
   onToggleSidebar,
   onSelectSession,
   onCreateSession,
@@ -125,7 +127,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-gray-400 hover:bg-cardBg/60 hover:text-gray-200'
                   }`}
                 >
-                  <MessageSquare className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-accentGreen' : 'text-gray-500'}`} />
+                  {loadingSessionIds[session.id] ? (
+                    <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                      <span className="w-2 h-2 rounded-full bg-accentGreen animate-ping" />
+                    </span>
+                  ) : (
+                    <MessageSquare className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-accentGreen' : 'text-gray-500'}`} />
+                  )}
 
                   {isEditing ? (
                     <div className="flex-1 flex items-center gap-1">
